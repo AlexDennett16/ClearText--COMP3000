@@ -1,19 +1,21 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:views="clr-namespace:ClearText.Views"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="ClearText.MainWindow"
-        Title="ClearText">
+<Window
+    x:Class="ClearText.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="clr-namespace:ClearText.Views"
+    Title="ClearText"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
-            <RowDefinition Height="4*" />
+            <RowDefinition Height="9*" />
         </Grid.RowDefinitions>
 
         <views:ToolbarView Grid.Row="0" DockPanel.Dock="Top" />
-        <Rectangle Grid.Row="1" Fill="LightBlue" />
+        <Rectangle Grid.Row="1" Fill="{DynamicResource DefaultBackgroundBrush}" />
     </Grid>
 </Window>
-

@@ -1,0 +1,7 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="DefaultBackground">#9B9B9B</Color>
+    <Color x:Key="DefaultTabBackground">#6B6B6B</Color>
+    <Color x:Key="DefaultFill">#FFFFFF</Color>
+    <Color x:Key="DefaultText">#000000</Color>
+    <Color x:Key="DefaultStroke">#000000</Color>
+</ResourceDictionary>

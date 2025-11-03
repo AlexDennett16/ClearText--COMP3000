@@ -9,7 +9,7 @@
   mc:Ignorable="d">
 
 
-  <StackPanel Background="Gray" Orientation="Horizontal">
+  <StackPanel Background="{DynamicResource DefaultTabBackgroundBrush}" Orientation="Horizontal">
     <Image Source="../Resources/ClearTextLogo.png" />
     <TextBlock Text="ToolbarView" HorizontalAlignment="Center" VerticalAlignment="Center" />
   </StackPanel>

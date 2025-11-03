@@ -1,0 +1,13 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ResourceDictionary.MergedDictionaries>
+    <!--  Import color definitions  -->
+    <ResourceInclude Source="avares://ClearText/Styles/Colours.axaml" />
+  </ResourceDictionary.MergedDictionaries>
+
+  <!--  Brand Brushes  -->
+  <SolidColorBrush x:Key="DefaultBackgroundBrush" Color="{StaticResource DefaultBackground}" />
+  <SolidColorBrush x:Key="DefaultTabBackgroundBrush" Color="{StaticResource DefaultTabBackground}" />
+  <SolidColorBrush x:Key="DefaultFillBrush" Color="{StaticResource DefaultFill}" />
+  <SolidColorBrush x:Key="DefaultTextBrush" Color="{StaticResource DefaultText}" />
+  <SolidColorBrush x:Key="DefaultStrokeBrush" Color="{StaticResource DefaultStroke}" />
+</ResourceDictionary>

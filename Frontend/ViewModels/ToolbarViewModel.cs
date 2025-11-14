@@ -1,6 +1,8 @@
-﻿namespace ClearText.ViewModels;
+﻿using ClearText.BaseViewModels;
 
-public class ToolbarViewModel
+namespace ClearText.ViewModels;
+
+public class ToolbarViewModel : ViewModelBase
 {
     public ToolbarViewModel()
     {

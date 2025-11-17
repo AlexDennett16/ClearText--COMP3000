@@ -16,6 +16,6 @@
         </Grid.RowDefinitions>
 
         <views:ToolbarView Grid.Row="0" DockPanel.Dock="Top" />
-        <Rectangle Grid.Row="1" Fill="{DynamicResource DefaultBackgroundBrush}" />
+        <views:PageSelectionView Grid.Row="1" />
     </Grid>
 </Window>

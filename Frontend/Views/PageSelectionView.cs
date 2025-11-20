@@ -18,8 +18,6 @@ public partial class PageSelectionView : UserControl
         LayoutUpdated += (_, _) =>
         {
             _viewModel.WrapWidth = Bounds.Width;
-            _viewModel.PageWidth = Bounds.Width / 5;
-            _viewModel.PageHeight = _viewModel.PageWidth * 1.61;
         };
     }
 }

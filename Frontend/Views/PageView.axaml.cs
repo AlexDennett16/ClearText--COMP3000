@@ -8,6 +8,5 @@ public partial class PageView : UserControl
     public PageView()
     {
         InitializeComponent();
-        DataContext = new PageViewModel();
     }
 }

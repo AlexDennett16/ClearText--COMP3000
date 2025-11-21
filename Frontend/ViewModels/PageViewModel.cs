@@ -7,22 +7,14 @@ namespace ClearText.ViewModels;
 
 public class PageViewModel : ViewModelBase
 {
-    private string _title = "Test Page";
-    private string _filePath = "TODO DEFAULT NEEDED?";
-    public string Title
-    {
-        get => _title;
-        set => this.RaiseAndSetIfChanged(ref _title, value);
-    }
-    public ReactiveCommand<Unit, Unit> OpenEditorCommand
-    {
-        get;
-        set;
-    }
+    //TODO implement Title / Use filename
+    public string FilePath { get; }
+    public ReactiveCommand<Unit, Unit> OpenEditorCommand { get; }
 
-    public PageViewModel( Action<string> openEditorCallback)
+
+    public PageViewModel(string filePath, Action<string> openEditorCallback)
     {
-        //_filePath = filePath;
-        OpenEditorCommand = ReactiveCommand.Create(() => openEditorCallback(_filePath));
+        FilePath = filePath;
+        OpenEditorCommand = ReactiveCommand.Create(() => openEditorCallback(FilePath));
     }
 }

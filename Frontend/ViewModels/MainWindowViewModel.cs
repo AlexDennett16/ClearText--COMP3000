@@ -7,6 +7,8 @@ namespace ClearText.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     private ViewModelBase? _currentViewModel;
+    private readonly PageStorageService _pageStorageService = new();
+
     public ViewModelBase CurrentViewModel
     {
         get => _currentViewModel ?? throw new InvalidOperationException("CurrentViewModel is not set");
@@ -15,7 +17,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
-        var pageSelectionVM = new PageSelectionViewModel(OpenEditor);
+        var pageSelectionVM = new PageSelectionViewModel(OpenEditor, _pageStorageService);
         CurrentViewModel = pageSelectionVM;
     }
 
@@ -26,6 +28,6 @@ public class MainWindowViewModel : ViewModelBase
 
     private void ReturnToMain()
     {
-        CurrentViewModel = new PageSelectionViewModel(OpenEditor);
+        CurrentViewModel = new PageSelectionViewModel(OpenEditor, _pageStorageService);
     }
 }

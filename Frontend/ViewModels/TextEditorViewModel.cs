@@ -1,18 +1,25 @@
+using System;
+using System.Reactive;
 using ClearText.BaseViewModels;
 using ReactiveUI;
+using DocumentFormat.OpenXml.Packaging;
 
 namespace ClearText.ViewModels;
 
 public class TextEditorViewModel : ViewModelBase
 {
-    private string _title = "Test Page";
-    private string _filePath = "TODO DEFAULT NEEDED?";
-    public string Title
+    public string DocumentText { get; }
+    public ReactiveCommand<Unit, Unit> ReturnCommand { get; }
+
+    public TextEditorViewModel(string filePath, Action returnCallback)
     {
-        get => _title;
-        set => this.RaiseAndSetIfChanged(ref _title, value);
+        DocumentText = LoadDocxText(filePath);
+        ReturnCommand = ReactiveCommand.Create(returnCallback);
     }
-    public TextEditorViewModel()
+
+    private string LoadDocxText(string path)
     {
+        using var doc = WordprocessingDocument.Open(path, false);
+        return doc.MainDocumentPart.Document.Body.InnerText;
     }
 }

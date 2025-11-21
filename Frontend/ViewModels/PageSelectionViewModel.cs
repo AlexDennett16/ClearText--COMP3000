@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using ClearText.BaseViewModels;
 using ReactiveUI;
@@ -15,12 +16,12 @@ public class PageSelectionViewModel : ViewModelBase
 
     public ObservableCollection<PageViewModel> Pages { get; } = new();
 
-    public PageSelectionViewModel()
+    public PageSelectionViewModel(Action<string> OpenEditor)
     {
         // Populate for testing
         for (int i = 1; i <= 50; i++)
         {
-            Pages.Add(new PageViewModel());
+            Pages.Add(new PageViewModel(OpenEditor));
         }
     }
 }

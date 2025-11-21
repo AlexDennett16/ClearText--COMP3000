@@ -17,8 +17,7 @@ public class PageStorageService
             {
                 Pages = new List<string>
                 {
-                    "C:\\Users\\Alex\\Downloads\\Test.docx" //
-
+                    "C:\\Users\\Alex\\Downloads\\Test.docx" //TODO Change to Nothing once testing over
                 }
             };
 

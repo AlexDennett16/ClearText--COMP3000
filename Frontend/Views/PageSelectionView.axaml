@@ -11,33 +11,52 @@
   x:DataType="vm:PageSelectionViewModel"
   mc:Ignorable="d">
 
-  <StackPanel Margin="25" Orientation="Horizontal">
-    <ScrollViewer
-      HorizontalAlignment="Stretch"
-      VerticalAlignment="Stretch"
-      VerticalScrollBarVisibility="Auto">
-      <Border Margin="25">
-        <ItemsControl ItemsSource="{Binding Pages}">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel
-                Width="{Binding WrapWidth}"
-                HorizontalAlignment="Left"
-                Orientation="Horizontal" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
+  <StackPanel Margin="83" Orientation="Vertical">
+    <StackPanel
+      HorizontalAlignment="Left"
+      Orientation="Horizontal"
+      Spacing="100">
+      <Button
+        Width="200"
+        Height="200"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Content="New Document" />
 
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="vm:PageViewModel">
-              <views:PageView
-                Width="200"
-                Height="322"
-                Margin="10" />
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </Border>
-    </ScrollViewer>
+      <Button
+        Width="200"
+        Height="200"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Content="New Template" />
+    </StackPanel>
+    <StackPanel Margin="25" Orientation="Horizontal">
+      <ScrollViewer
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch"
+        VerticalScrollBarVisibility="Auto">
+        <Border Margin="25">
+          <ItemsControl ItemsSource="{Binding Pages}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel
+                  Width="{Binding WrapWidth}"
+                  HorizontalAlignment="Left"
+                  Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:PageViewModel">
+                <views:PageView
+                  Width="200"
+                  Height="322"
+                  Margin="10" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Border>
+      </ScrollViewer>
+    </StackPanel>
   </StackPanel>
-
 </UserControl>

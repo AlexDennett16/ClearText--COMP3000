@@ -7,8 +7,8 @@ namespace ClearText.ViewModels;
 
 public class PageViewModel : ViewModelBase
 {
-    //TODO implement Title / Use filename
     public string FilePath { get; }
+    public string Title => System.IO.Path.GetFileNameWithoutExtension(FilePath);
     public ReactiveCommand<Unit, Unit> OpenEditorCommand { get; }
 
 

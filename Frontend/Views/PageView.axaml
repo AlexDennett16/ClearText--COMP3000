@@ -22,7 +22,7 @@
             </Grid.RowDefinitions>
 
             <Rectangle Grid.Row="0" Fill="White" />
-            <TextBlock Grid.Row="1" Background="Gray" Text="Lorem" />
+            <TextBlock Grid.Row="1" Background="Gray" Text="{Binding Title}" />
 
         </Grid>
     </Border>

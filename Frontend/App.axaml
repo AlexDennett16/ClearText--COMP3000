@@ -4,6 +4,8 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:converters="clr-namespace:ClearText.Converters"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:dialogViews="clr-namespace:ClearText.Dialogs"
+  xmlns:dialogs="clr-namespace:ClearText.Dialogs"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:views="clr-namespace:ClearText.Views"
   xmlns:vm="clr-namespace:ClearText.ViewModels"
@@ -31,6 +33,9 @@
     </DataTemplate>
     <DataTemplate DataType="vm:TextEditorViewModel">
       <views:TextEditorView />
+    </DataTemplate>
+    <DataTemplate DataType="dialogs:PageNameDialogViewModel">
+      <dialogViews:PageNameDialogView />
     </DataTemplate>
   </Application.DataTemplates>
 

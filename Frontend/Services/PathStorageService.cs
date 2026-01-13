@@ -16,10 +16,10 @@ public class PageStorageService
         {
             var defaultfilePathStoragePath = new PageConfig
             {
-                Pages = new List<string>
-                {
+                Pages =
+                [
                     "C:\\Users\\Alex\\Downloads\\Test.docx" //TODO Change to Nothing once testing over
-                }
+                ]
             };
 
             var defaultJSON = JsonSerializer.Serialize(defaultfilePathStoragePath,

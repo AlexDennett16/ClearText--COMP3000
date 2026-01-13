@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace ClearText.Services;
 
@@ -50,7 +53,17 @@ public class PageStorageService
 
     public string CreateFilePath(string pageName)
     {
-        var fullPath = Path.Combine(filePathStoragePath, pageName + ".docx");
+        var fullPath = Path.Combine("C:\\Users\\Alex\\Documents", pageName + ".docx"); //TODO Add file selection dialog
+
+        using var doc = WordprocessingDocument.Create(
+            fullPath,
+            WordprocessingDocumentType.Document);
+        MainDocumentPart mainPart = doc.AddMainDocumentPart();
+        mainPart.Document = new Document();
+        mainPart.Document.AppendChild(new Body());
+
+        mainPart.Document.Save();
+
         return fullPath;
     }
 }

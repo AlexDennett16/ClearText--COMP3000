@@ -22,8 +22,8 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.18.0" />
-    <PackageReference Include="DocumentFormat.OpenXml.Framework" Version="3.3.0" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.4.1" />
+    <PackageReference Include="DocumentFormat.OpenXml.Framework" Version="3.4.1" />
     <PackageReference Include="System.IO.Packaging" Version="8.0.1" />
   </ItemGroup>
 </Project>

@@ -8,7 +8,7 @@ namespace ClearText.Services;
 
 public class PageStorageService
 {
-    private string filePathStoragePath = DetermineStoragePath(); //Cant be const cant it?
+    private readonly string filePathStoragePath = DetermineStoragePath(); //Cant be const cant it?
 
     public List<string> LoadFilePaths()
     {

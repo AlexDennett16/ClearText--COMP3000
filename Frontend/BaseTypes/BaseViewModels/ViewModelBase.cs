@@ -1,5 +1,6 @@
 using ReactiveUI;
-namespace ClearText.BaseViewModels; 
+
+namespace ClearText.BaseTypes.BaseViewModels;
 
 public class ViewModelBase : ReactiveObject
 {

@@ -2,6 +2,7 @@
     x:Class="ClearText.MainWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:baseViews="clr-namespace:ClearText.BaseTypes.BaseViews"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:views="clr-namespace:ClearText.Views"
@@ -19,5 +20,17 @@
 
         <views:ToolbarView Grid.Row="0" DockPanel.Dock="Top" />
         <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}" />
+
+        <Border
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Background="#80000000"
+            IsVisible="{Binding DialogViewModel, Converter={StaticResource NullToBoolConverter}}">
+            <baseViews:DialogViewBase>
+                <ContentControl Content="{Binding DialogViewModel}" />
+            </baseViews:DialogViewBase>
+
+        </Border>
+
     </Grid>
 </Window>

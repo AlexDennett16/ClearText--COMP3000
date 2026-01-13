@@ -4,9 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
+namespace ClearText.Services;
+
 public class PageStorageService
 {
-
     private string filePathStoragePath = DetermineStoragePath(); //Cant be const cant it?
 
     public List<string> LoadFilePaths()
@@ -21,10 +22,10 @@ public class PageStorageService
                 }
             };
 
-            var defaultJSON = JsonSerializer.Serialize(defaultfilePathStoragePath, new JsonSerializerOptions { WriteIndented = true });
+            var defaultJSON = JsonSerializer.Serialize(defaultfilePathStoragePath,
+                new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(filePathStoragePath, defaultJSON);
             return defaultfilePathStoragePath.Pages;
-
         }
 
         var json = File.ReadAllText(filePathStoragePath);
@@ -45,6 +46,12 @@ public class PageStorageService
         var configDir = Path.Combine(appData, "ClearText");
         Directory.CreateDirectory(configDir);
         return Path.Combine(configDir, "pages.json");
+    }
+
+    public string CreateFilePath(string pageName)
+    {
+        var fullPath = Path.Combine(filePathStoragePath, pageName + ".docx");
+        return fullPath;
     }
 }
 

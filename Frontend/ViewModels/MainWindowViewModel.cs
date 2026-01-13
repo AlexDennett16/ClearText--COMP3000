@@ -1,5 +1,6 @@
 using System;
-using ClearText.BaseViewModels;
+using ClearText.BaseTypes.BaseViewModels;
+using ClearText.Services;
 using ReactiveUI;
 
 namespace ClearText.ViewModels;
@@ -8,6 +9,15 @@ public class MainWindowViewModel : ViewModelBase
 {
     private ViewModelBase? _currentViewModel;
     private readonly PageStorageService _pageStorageService = new();
+    private readonly DialogService _dialogService;
+
+    private ViewModelBase? _dialogViewModel;
+
+    public ViewModelBase? DialogViewModel
+    {
+        get => _dialogViewModel;
+        set => this.RaiseAndSetIfChanged(ref _dialogViewModel, value);
+    }
 
     public ViewModelBase CurrentViewModel
     {
@@ -17,7 +27,8 @@ public class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
-        var pageSelectionVM = new PageSelectionViewModel(OpenEditor, _pageStorageService);
+        _dialogService = new DialogService(this);
+        var pageSelectionVM = new PageSelectionViewModel(OpenEditor, _pageStorageService, _dialogService);
         CurrentViewModel = pageSelectionVM;
     }
 
@@ -28,6 +39,6 @@ public class MainWindowViewModel : ViewModelBase
 
     private void ReturnToMain()
     {
-        CurrentViewModel = new PageSelectionViewModel(OpenEditor, _pageStorageService);
+        CurrentViewModel = new PageSelectionViewModel(OpenEditor, _pageStorageService, _dialogService);
     }
 }

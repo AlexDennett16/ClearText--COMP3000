@@ -1,6 +1,6 @@
 using System;
 using System.Reactive;
-using ClearText.BaseViewModels;
+using ClearText.BaseTypes.BaseViewModels;
 using ReactiveUI;
 using DocumentFormat.OpenXml.Packaging;
 

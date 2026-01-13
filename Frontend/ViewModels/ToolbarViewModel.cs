@@ -1,4 +1,4 @@
-﻿using ClearText.BaseViewModels;
+﻿using ClearText.BaseTypes.BaseViewModels;
 
 namespace ClearText.ViewModels;
 

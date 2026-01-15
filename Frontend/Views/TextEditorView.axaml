@@ -12,6 +12,10 @@
             Command="{Binding ReturnCommand}"
             Content="Back"
             DockPanel.Dock="Top" />
+        <Button
+            Command="{Binding SaveCommand}"
+            Content="Save"
+            DockPanel.Dock="Top" />
         <TextBox
             AcceptsReturn="True"
             Text="{Binding DocumentText}"

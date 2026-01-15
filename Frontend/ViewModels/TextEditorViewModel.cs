@@ -19,7 +19,6 @@ public class TextEditorViewModel : ViewModelBase
 {
     private readonly string _filePath;
 
-    // Store original runs (with formatting)
     private readonly List<WordRun> _originalRuns = [];
 
     private string _documentText = string.Empty;
@@ -99,10 +98,8 @@ public class TextEditorViewModel : ViewModelBase
         var sb = new StringBuilder();
         var paragraphs = body.Elements<WordParagraph>().ToList();
 
-        for (var i = 0; i < paragraphs?.Count; i++)
+        foreach (var paragraph in paragraphs)
         {
-            var paragraph = paragraphs[i];
-
             foreach (var run in paragraph.Elements<WordRun>())
             {
                 _originalRuns.Add((WordRun)run.CloneNode(true));

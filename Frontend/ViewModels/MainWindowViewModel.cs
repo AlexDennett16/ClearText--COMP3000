@@ -25,20 +25,22 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _currentViewModel, value);
     }
 
+    public ToastService ToastService { get; } = new();
+
     public MainWindowViewModel()
     {
         _dialogService = new DialogService(this);
-        var pageSelectionVM = new PageSelectionViewModel(OpenEditor, _pageStorageService, _dialogService);
+        var pageSelectionVM = new PageSelectionViewModel(OpenEditor, _pageStorageService, _dialogService, ToastService);
         CurrentViewModel = pageSelectionVM;
     }
 
     private void OpenEditor(string filePath)
     {
-        CurrentViewModel = new TextEditorViewModel(filePath, ReturnToMain);
+        CurrentViewModel = new TextEditorViewModel(filePath, ReturnToMain, ToastService);
     }
 
     private void ReturnToMain()
     {
-        CurrentViewModel = new PageSelectionViewModel(OpenEditor, _pageStorageService, _dialogService);
+        CurrentViewModel = new PageSelectionViewModel(OpenEditor, _pageStorageService, _dialogService, ToastService);
     }
 }

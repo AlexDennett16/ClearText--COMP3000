@@ -21,6 +21,13 @@
         <views:ToolbarView Grid.Row="0" DockPanel.Dock="Top" />
         <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}" />
 
+        <baseViews:ToastHostView
+            Grid.Row="1"
+            Margin="16"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            DataContext="{Binding ToastService}" />
+
         <Border
             Grid.Row="0"
             Grid.RowSpan="2"

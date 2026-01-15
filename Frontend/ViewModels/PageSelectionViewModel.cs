@@ -15,6 +15,7 @@ public class PageSelectionViewModel : ViewModelBase
     private readonly PageStorageService _storage;
 
     private readonly DialogService _dialogService;
+    private readonly ToastService _toastService;
 
     private double _wrapWidth;
 
@@ -32,8 +33,9 @@ public class PageSelectionViewModel : ViewModelBase
 
 
     public PageSelectionViewModel(Action<string> openEditorCallback, PageStorageService storage,
-        DialogService dialogService)
+        DialogService dialogService, ToastService toastService)
     {
+        _toastService = toastService;
         _openEditor = openEditorCallback;
         _storage = storage;
         _dialogService = dialogService;
@@ -66,6 +68,8 @@ public class PageSelectionViewModel : ViewModelBase
 
             // 6. Persist
             _storage.SaveFilePaths(Pages.Select(p => p.FilePath).ToList());
+
+            _toastService.CreateAndShowInfoToast($"Document '{pageName}' created successfully.");
 
             // 7. Optionally open the editor
             //_openEditor(newPath);

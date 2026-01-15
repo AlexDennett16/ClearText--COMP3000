@@ -6,6 +6,7 @@ using ClearText.BaseTypes.BaseViewModels;
 using ReactiveUI;
 using DocumentFormat.OpenXml.Packaging;
 using System.Linq;
+using ClearText.Services;
 
 // Explicit OpenXML aliases to avoid collisions with avalonia controls
 using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
@@ -20,6 +21,7 @@ public class TextEditorViewModel : ViewModelBase
     private readonly string _filePath;
 
     private readonly List<WordRun> _originalRuns = [];
+    private readonly ToastService _toastService;
 
     private string _documentText = string.Empty;
 
@@ -32,9 +34,10 @@ public class TextEditorViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ReturnCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
 
-    public TextEditorViewModel(string filePath, Action returnCallback)
+    public TextEditorViewModel(string filePath, Action returnCallback, ToastService toastService)
     {
         _filePath = filePath;
+        _toastService = toastService;
 
         DocumentText = LoadDocxText(filePath);
 
@@ -86,6 +89,7 @@ public class TextEditorViewModel : ViewModelBase
         }
 
         doc.MainDocumentPart.Document.Save();
+        _toastService.CreateAndShowInfoToast(("Document saved successfully."));
     }
 
     private string LoadDocxText(string path)

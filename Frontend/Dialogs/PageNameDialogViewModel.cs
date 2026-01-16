@@ -33,7 +33,9 @@ public class PageNameDialogViewModel : DialogViewModelBase<string?>
     {
       Close?.Invoke(PageName);
     }
-
-    _toastService.CreateAndShowErrorToast("Document name required.");
+    else
+    {
+      _toastService.CreateAndShowErrorToast("Document name required.");
+    }
   }
 }

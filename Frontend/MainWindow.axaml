@@ -20,7 +20,7 @@
         </Grid.RowDefinitions>
 
         <!--  Toolbar  -->
-        <views:ToolbarView Grid.Row="0" />
+        <views:ToolbarView Grid.Row="0" DockPanel.Dock="Top" />
 
         <!--  Main content area  -->
         <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}" />

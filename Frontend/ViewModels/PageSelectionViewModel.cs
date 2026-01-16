@@ -63,7 +63,7 @@ public class PageSelectionViewModel : ViewModelBase
             var newPath = _storage.CreateFilePath(pageName);
 
             // 5. Add to UI list
-            Pages.Add(new PageViewModel(newPath, _openEditor));
+            Pages.Insert(0, new PageViewModel(newPath, _openEditor));
 
             // 6. Persist
             _storage.SaveFilePaths(Pages.Select(p => p.FilePath).ToList());

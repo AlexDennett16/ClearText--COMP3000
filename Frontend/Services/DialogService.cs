@@ -1,22 +1,29 @@
 using System.Threading.Tasks;
 using ClearText.BaseTypes.BaseViewModels;
-using ClearText.ViewModels;
+using ClearText.Interfaces;
 
 namespace ClearText.Services;
 
-public class DialogService(MainWindowViewModel host)
+public class DialogService : IDialogService
 {
-    public Task<TResult?> ShowAsync<TResult>(DialogViewModelBase<TResult> vm)
+  private IDialogHost? _host;
+
+  public void SetHost(IDialogHost host)
+  {
+    _host = host;
+  }
+
+  public Task<TResult?> ShowAsync<TResult>(DialogViewModelBase<TResult> vm)
   {
     var tcs = new TaskCompletionSource<TResult?>();
 
     vm.Close = result =>
     {
-      host.DialogViewModel = null;
+      if (_host != null) _host.DialogViewModel = null;
       tcs.SetResult(result);
     };
 
-    host.DialogViewModel = vm;
+    if (_host != null) _host.DialogViewModel = vm;
 
     return tcs.Task;
   }

@@ -3,20 +3,36 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:services="clr-namespace:ClearText.Services"
+    xmlns:toasts="clr-namespace:ClearText.Toasts"
     x:DataType="services:ToastService">
-
 
     <ItemsControl ItemsSource="{Binding Toasts}">
         <ItemsControl.ItemTemplate>
             <DataTemplate>
-                <Border
-                    Margin="0,0,0,8"
-                    Padding="12"
-                    Background="#333">
-                    <TextBlock Foreground="White" Text="{Binding Message}" />
-                </Border>
+                <ContentPresenter Content="{Binding}">
+                    <ContentPresenter.DataTemplates>
+
+                        <DataTemplate x:DataType="toasts:InfoToast">
+                            <Border
+                                Margin="0,0,0,8"
+                                Padding="12"
+                                Background="#333">
+                                <TextBlock Foreground="White" Text="{Binding Message}" />
+                            </Border>
+                        </DataTemplate>
+
+                        <DataTemplate x:DataType="toasts:ErrorToast">
+                            <Border
+                                Margin="0,0,0,8"
+                                Padding="12"
+                                Background="#991111">
+                                <TextBlock Foreground="White" Text="{Binding Message}" />
+                            </Border>
+                        </DataTemplate>
+
+                    </ContentPresenter.DataTemplates>
+                </ContentPresenter>
             </DataTemplate>
         </ItemsControl.ItemTemplate>
     </ItemsControl>
-
 </UserControl>

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reactive;
 using ClearText.BaseTypes.BaseViewModels;
 using ClearText.Dialogs;
-using ClearText.Services;
+using ClearText.Interfaces;
 using ReactiveUI;
 
 namespace ClearText.ViewModels;
@@ -12,10 +12,10 @@ namespace ClearText.ViewModels;
 public class PageSelectionViewModel : ViewModelBase
 {
     private readonly Action<string> _openEditor;
-    private readonly PageStorageService _storage;
+    private readonly IPageStorageService _storage;
 
-    private readonly DialogService _dialogService;
-    private readonly ToastService _toastService;
+    private readonly IDialogService _dialogService;
+    private readonly IToastService _toastService;
 
     private double _wrapWidth;
 
@@ -32,17 +32,16 @@ public class PageSelectionViewModel : ViewModelBase
     public Interaction<Unit, string?> RequestNewPageName { get; }
 
 
-    public PageSelectionViewModel(Action<string> openEditorCallback, PageStorageService storage,
-        DialogService dialogService, ToastService toastService)
+    public PageSelectionViewModel(Action<string> openEditorCallback, IAppServices services)
     {
-        _toastService = toastService;
+        _toastService = services.ToastService;
         _openEditor = openEditorCallback;
-        _storage = storage;
-        _dialogService = dialogService;
+        _storage = services.PageStorageService;
+        _dialogService = services.DialogService;
 
         RequestNewPageName = new Interaction<Unit, string?>();
 
-        var paths = storage.LoadFilePaths();
+        var paths = _storage.LoadFilePaths();
         Pages = new ObservableCollection<PageViewModel>(
             paths.Select(p => new PageViewModel(p, openEditorCallback)));
 
@@ -53,7 +52,7 @@ public class PageSelectionViewModel : ViewModelBase
     {
         try
         {
-            var dialog = new PageNameDialogViewModel();
+            var dialog = new PageNameDialogViewModel(_toastService);
             var pageName = await _dialogService.ShowAsync(dialog);
 
             if (pageName is null)

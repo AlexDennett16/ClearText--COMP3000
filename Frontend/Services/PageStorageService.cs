@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using ClearText.Interfaces;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace ClearText.Services;
 
-public class PageStorageService
+public class PageStorageService : IPageStorageService
 {
     private readonly string filePathStoragePath = DetermineStoragePath(); //Cant be const cant it?
 

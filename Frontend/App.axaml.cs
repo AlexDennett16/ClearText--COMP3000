@@ -3,11 +3,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using ClearText.Services;
 
 namespace ClearText;
 
 public partial class App : Application
 {
+    public static AppServices Services { get; private set; } = null!;
     public static Window? MainWindow { get; private set; }
 
     public override void Initialize()
@@ -20,8 +22,14 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow();
-            MainWindow = desktop.MainWindow;
+            Services = new AppServices();
+
+            var window = new MainWindow();
+            desktop.MainWindow = window;
+            MainWindow = window;
+
+            // Attach the dialog host to the dialog service
+            Services.DialogService.SetHost(window);
         }
 
         base.OnFrameworkInitializationCompleted();

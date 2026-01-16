@@ -1,23 +1,14 @@
 using System;
 using ClearText.BaseTypes.BaseViewModels;
-using ClearText.Services;
+using ClearText.Interfaces;
 using ReactiveUI;
 
 namespace ClearText.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
+    public IAppServices Services { get; }
     private ViewModelBase? _currentViewModel;
-    private readonly PageStorageService _pageStorageService = new();
-    private readonly DialogService _dialogService;
-
-    private ViewModelBase? _dialogViewModel;
-
-    public ViewModelBase? DialogViewModel
-    {
-        get => _dialogViewModel;
-        set => this.RaiseAndSetIfChanged(ref _dialogViewModel, value);
-    }
 
     public ViewModelBase CurrentViewModel
     {
@@ -25,22 +16,19 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _currentViewModel, value);
     }
 
-    public ToastService ToastService { get; } = new();
-
-    public MainWindowViewModel()
+    public MainWindowViewModel(IAppServices services)
     {
-        _dialogService = new DialogService(this);
-        var pageSelectionVM = new PageSelectionViewModel(OpenEditor, _pageStorageService, _dialogService, ToastService);
-        CurrentViewModel = pageSelectionVM;
+        Services = services;
+        CurrentViewModel = new PageSelectionViewModel(OpenEditor, Services);
     }
 
     private void OpenEditor(string filePath)
     {
-        CurrentViewModel = new TextEditorViewModel(filePath, ReturnToMain, ToastService);
+        CurrentViewModel = new TextEditorViewModel(filePath, ReturnToMain, Services);
     }
 
     private void ReturnToMain()
     {
-        CurrentViewModel = new PageSelectionViewModel(OpenEditor, _pageStorageService, _dialogService, ToastService);
+        CurrentViewModel = new PageSelectionViewModel(OpenEditor, Services);
     }
 }

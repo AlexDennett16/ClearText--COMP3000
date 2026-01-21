@@ -5,3 +5,4 @@ transformers
 spacy
 pandas
 pyspellchecker
+wordfreq

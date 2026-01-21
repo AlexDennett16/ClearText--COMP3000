@@ -1,9 +1,9 @@
 import nltk
 from nltk.corpus import words
+from wordfreq import top_n_list
 
 
-def load_corpora(): 
+def load_corpora():
     nltk.download("punkt", quiet=True)
-    nltk.download("words", quiet=True) #words is old corpus, worth updating to something more modern later
 
-    return set(words.words())
+    return set(top_n_list("en", 100000))

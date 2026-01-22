@@ -9,9 +9,8 @@ def check_punctuation_errors(tokens: List[str]) -> List[str]:
             if next_token in {".", ",", "!", "?"}:
                 errors.append(
                     {
-                        "type": "punctuation",
+                        "type": "duplicate punctuation",
                         "token": token,
-                        "next token": next_token,
                         "index": i,
                     }
                 )

@@ -7,7 +7,7 @@ def check_capitalization_errors(tokens: List[str]) -> List[str]:
         if i > 0 and tokens[i - 1] in {".", "!", "?"} and not token[0].isupper():
             errors.append(
                 {
-                    "type": "Capitalization",
+                    "type": "capitalization",
                     "token": token,
                     "index": i
                 }

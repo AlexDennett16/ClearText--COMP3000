@@ -20,12 +20,16 @@
             Content="Save"
             DockPanel.Dock="Top" />
 
-        <avaloniaEdit:TextEditor
-            x:Name="Editor"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            Background="White"
-            ShowLineNumbers="True"
-            WordWrap="True" />
+        <border
+            BorderBrush="Gray"
+            borderThickness="2"
+            margin="30">
+            <avaloniaEdit:TextEditor
+                x:Name="Editor"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                ShowLineNumbers="True"
+                WordWrap="True" />
+        </border>
     </DockPanel>
 </UserControl>

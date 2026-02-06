@@ -3,18 +3,12 @@ using Avalonia;
 using Avalonia.Media;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
-using DocumentFormat.OpenXml.Bibliography;
 
 namespace ClearText.Services
 {
-    public class TextMarkerService : IBackgroundRenderer
+    public class TextMarkerService(TextDocument document) : IBackgroundRenderer
     {
-        private readonly TextSegmentCollection<TextMarker> _markers;
-
-        public TextMarkerService(TextDocument document)
-        {
-            _markers = new TextSegmentCollection<TextMarker>(document);
-        }
+        private readonly TextSegmentCollection<TextMarker> _markers = new(document);
 
         public void AddMarker(int startOffset, int length, Color color)
         {

@@ -9,12 +9,13 @@
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:views="clr-namespace:ClearText.Views"
   xmlns:vm="clr-namespace:ClearText.ViewModels"
-  RequestedThemeVariant="Default"
+  RequestedThemeVariant="Dark"
   mc:Ignorable="d">
   <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
   <Application.Styles>
     <FluentTheme />
+    <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
   </Application.Styles>
 
   <Application.Resources>

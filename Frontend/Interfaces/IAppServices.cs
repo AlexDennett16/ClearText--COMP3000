@@ -4,5 +4,6 @@ public interface IAppServices
 {
   IToastService ToastService { get; }
   IDialogService DialogService { get; }
-  IPageStorageService PageStorageService { get; }
+  IPathService PathService { get; }
+  IGrammarService GrammarService { get; }
 }

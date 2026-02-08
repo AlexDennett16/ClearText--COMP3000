@@ -10,15 +10,15 @@ using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace ClearText.Services;
 
-public class PageStorageService : IPageStorageService
+public class PathService : IPathService
 {
-    private readonly string filePathStoragePath = DetermineStoragePath(); //Cant be const cant it?
+    private readonly string PageFilePathStoragePath = DeterminePageStoragePath(); //Cant be const cant it?
 
-    public List<string> LoadFilePaths()
+    public List<string> LoadPageFilePaths()
     {
-        if (!File.Exists(filePathStoragePath))
+        if (!File.Exists(PageFilePathStoragePath))
         {
-            var defaultfilePathStoragePath = new PageConfig
+            var defaultFilePathStoragePath = new PageConfig
             {
                 Pages =
                 [
@@ -26,25 +26,25 @@ public class PageStorageService : IPageStorageService
                 ]
             };
 
-            var defaultJSON = JsonSerializer.Serialize(defaultfilePathStoragePath,
+            var defaultJSON = JsonSerializer.Serialize(defaultFilePathStoragePath,
                 new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(filePathStoragePath, defaultJSON);
-            return defaultfilePathStoragePath.Pages;
+            File.WriteAllText(PageFilePathStoragePath, defaultJSON);
+            return defaultFilePathStoragePath.Pages;
         }
 
-        var json = File.ReadAllText(filePathStoragePath);
+        var json = File.ReadAllText(PageFilePathStoragePath);
         var config = JsonSerializer.Deserialize<PageConfig>(json);
         return config?.Pages ?? [];
     }
 
-    public void SaveFilePaths(IEnumerable<string> paths)
+    public void SavePageFilePaths(IEnumerable<string> paths)
     {
         var config = new PageConfig { Pages = paths.ToList() };
         var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(filePathStoragePath, json);
+        File.WriteAllText(PageFilePathStoragePath, json);
     }
 
-    private static string DetermineStoragePath()
+    private static string DeterminePageStoragePath()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var configDir = Path.Combine(appData, "ClearText");
@@ -52,7 +52,7 @@ public class PageStorageService : IPageStorageService
         return Path.Combine(configDir, "pages.json");
     }
 
-    public string CreateFilePath(string pageName)
+    public string CreatePageFilePath(string pageName)
     {
         var fullPath = Path.Combine("C:\\Users\\Alex\\Documents", pageName + ".docx"); //TODO Add file selection dialog
 
@@ -67,9 +67,16 @@ public class PageStorageService : IPageStorageService
 
         return fullPath;
     }
+
+    public (string, string) LoadPythonFilePath()
+    {
+        //TODO Implement this properly, maybe with a separate config file or something
+        return ("C:\\Users\\Alex\\Desktop\\Projects\\Year 3\\ClearText--COMP3000\\.venv\\Scripts\\python.exe", "C:\\Users\\Alex\\Desktop\\Projects\\Year 3\\ClearText--COMP3000\\Backend");
+
+    }
 }
 
 public class PageConfig
 {
-    public List<string> Pages { get; set; } = new();
+    public List<string> Pages { get; set; } = [];
 }

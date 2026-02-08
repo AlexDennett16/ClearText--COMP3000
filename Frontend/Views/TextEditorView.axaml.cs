@@ -1,7 +1,6 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Media;
 using ClearText.Services;
 using ClearText.ViewModels;
 

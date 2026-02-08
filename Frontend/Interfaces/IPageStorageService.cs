@@ -2,11 +2,13 @@ using System.Collections.Generic;
 
 namespace ClearText.Interfaces;
 
-public interface IPageStorageService
+public interface IPathService
 {
-  List<string> LoadFilePaths();
-  
-  void SaveFilePaths(IEnumerable<string> paths);
+  List<string> LoadPageFilePaths();
 
-  string CreateFilePath(string pageName);
+  void SavePageFilePaths(IEnumerable<string> paths);
+
+  string CreatePageFilePath(string pageName);
+
+  (string, string) LoadPythonFilePath(); //TODO return type is horrific, refactor this when implementing properly
 }

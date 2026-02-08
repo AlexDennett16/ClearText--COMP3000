@@ -12,7 +12,7 @@ namespace ClearText.ViewModels;
 public class PageSelectionViewModel : ViewModelBase
 {
     private readonly Action<string> _openEditor;
-    private readonly IPageStorageService _storage;
+    private readonly IPathService _storage;
 
     private readonly IDialogService _dialogService;
     private readonly IToastService _toastService;
@@ -36,12 +36,12 @@ public class PageSelectionViewModel : ViewModelBase
     {
         _toastService = services.ToastService;
         _openEditor = openEditorCallback;
-        _storage = services.PageStorageService;
+        _storage = services.PathService;
         _dialogService = services.DialogService;
 
         RequestNewPageName = new Interaction<Unit, string?>();
 
-        var paths = _storage.LoadFilePaths();
+        var paths = _storage.LoadPageFilePaths();
         Pages = new ObservableCollection<PageViewModel>(
             paths.Select(p => new PageViewModel(p, openEditorCallback)));
 
@@ -60,13 +60,13 @@ public class PageSelectionViewModel : ViewModelBase
 
 
             // 4. Build the new file path
-            var newPath = _storage.CreateFilePath(pageName);
+            var newPath = _storage.CreatePageFilePath(pageName);
 
             // 5. Add to UI list
             Pages.Insert(0, new PageViewModel(newPath, _openEditor));
 
             // 6. Persist
-            _storage.SaveFilePaths(Pages.Select(p => p.FilePath).ToList());
+            _storage.SavePageFilePaths(Pages.Select(p => p.FilePath).ToList());
 
             _toastService.CreateAndShowInfoToast($"Document '{pageName}' created successfully.");
 

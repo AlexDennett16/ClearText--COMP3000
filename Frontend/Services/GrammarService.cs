@@ -48,7 +48,3 @@ public class GrammarService(IPathService pathService) : IGrammarService
         return result;
     }
 }
-
-internal interface IPageStorageService
-{
-}

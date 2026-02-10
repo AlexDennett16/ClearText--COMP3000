@@ -32,13 +32,12 @@ public partial class TextEditorView : UserControl
 
         LoadSquigglies();
 
-
-        Editor.TextChanged += (_, _) =>
+        vm.PropertyChanged += (_, e) =>
         {
-            if (Editor.Text != vm.DocumentText)
-                vm.DocumentText = Editor.Text;
-            LoadSquigglies();
+            if (e.PropertyName == nameof(vm.Errors))
+                LoadSquigglies();
         };
+
 
         vm.PropertyChanged += (_, e) =>
         {
@@ -55,7 +54,10 @@ public partial class TextEditorView : UserControl
     {
         _markerService.ClearMarkers();
 
-        _markerService.LoadSquigglies(Editor.Text);
+        if (DataContext is TextEditorViewModel vm)
+        {
+            _markerService.LoadSquigglies(vm.DocumentText, vm.Errors ?? []);
+        }
 
         Editor.TextArea.TextView.InvalidateVisual();
     }

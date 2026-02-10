@@ -7,7 +7,7 @@ public class AppServices : IAppServices
 {
     public IToastService ToastService { get; } = new ToastService();
     public IDialogService DialogService { get; } = new DialogService();
-    public IPathService PathService { get; } = new PathService();
+    public IPathService PathService { get; }
     public IGrammarService GrammarService { get; }
 
     public AppServices()

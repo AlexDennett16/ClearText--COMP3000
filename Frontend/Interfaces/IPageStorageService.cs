@@ -10,5 +10,5 @@ public interface IPathService
 
   string CreatePageFilePath(string pageName);
 
-  (string, string) LoadPythonFilePath(); //TODO return type is horrific, refactor this when implementing properly
+  (string PythonExe, string WorkingDirectory) LoadPythonFilePath(); //TODO return type is horrific, refactor this when implementing properly
 }

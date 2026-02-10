@@ -22,7 +22,7 @@ public class PathService : IPathService
             {
                 Pages =
                 [
-                    "C:\\Users\\Alex\\Downloads\\Test.docx" //TODO Change to Nothing once testing over
+                    "C:\\Users\\alex\\Downloads\\Test.docx" //TODO Change to Nothing once testing over
                 ]
             };
 
@@ -54,7 +54,7 @@ public class PathService : IPathService
 
     public string CreatePageFilePath(string pageName)
     {
-        var fullPath = Path.Combine("C:\\Users\\Alex\\Documents", pageName + ".docx"); //TODO Add file selection dialog
+        var fullPath = Path.Combine("C:\\Users\\alex\\Documents", pageName + ".docx"); //TODO Add file selection dialog
 
         using var doc = WordprocessingDocument.Create(
             fullPath,
@@ -68,11 +68,46 @@ public class PathService : IPathService
         return fullPath;
     }
 
-    public (string, string) LoadPythonFilePath()
+    public (string PythonExe, string WorkingDirectory) LoadPythonFilePath()
     {
-        //TODO Implement this properly, maybe with a separate config file or something
-        return ("C:\\Users\\Alex\\Desktop\\Projects\\Year 3\\ClearText--COMP3000\\.venv\\Scripts\\python.exe", "C:\\Users\\Alex\\Desktop\\Projects\\Year 3\\ClearText--COMP3000\\Backend");
+        // 1. Find project root then main ClearText folder
+        var baseDir = AppContext.BaseDirectory;
+        var projectRoot = FindDirectoryUpwards(baseDir, "ClearText--COMP3000")
+                          ?? throw new DirectoryNotFoundException(
+                              "Could not locate project root 'ClearText--COMP3000'.");
 
+        // 2. Build expected venv python path
+        var pythonPath = Path.Combine(projectRoot, ".venv", "Scripts", "python.exe");
+
+        if (!File.Exists(pythonPath))
+            throw new FileNotFoundException(
+                $"Python executable not found at: {pythonPath}\n" +
+                "Ensure your venv is created and accessible.");
+
+        // 3. Backend folder for working directory
+        var backendDir = Path.Combine(projectRoot, "Backend");
+
+        if (!Directory.Exists(backendDir))
+            throw new DirectoryNotFoundException(
+                $"Backend directory not found at: {backendDir}");
+
+        return (pythonPath, backendDir);
+    }
+
+    private static string? FindDirectoryUpwards(string startDir, string targetFolderName)
+    {
+        var dir = new DirectoryInfo(startDir);
+
+        while (dir != null)
+        {
+            var candidate = Path.Combine(dir.FullName, targetFolderName);
+            if (Directory.Exists(candidate))
+                return candidate;
+
+            dir = dir.Parent;
+        }
+
+        return null;
     }
 }
 

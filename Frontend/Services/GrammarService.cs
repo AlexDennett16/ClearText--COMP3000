@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using ClearText.DataObjects;
@@ -9,11 +10,18 @@ namespace ClearText.Services;
 
 public class GrammarService(IPathService pathService) : IGrammarService
 {
-    private readonly string _pythonPath = pathService.LoadPythonFilePath().Item1;
-    private readonly string _workingDirectory = pathService.LoadPythonFilePath().Item2;
+    private readonly string _pythonPath = pathService.LoadPythonFilePath().PythonExe;
+    private readonly string _workingDirectory = pathService.LoadPythonFilePath().WorkingDirectory;
 
     public async Task<ClearTextResult?> CheckGrammarAsync(string text)
     {
+
+        if (!File.Exists(_pythonPath))
+            throw new FileNotFoundException("Python executable not found", _pythonPath);
+
+        if (!Directory.Exists(_workingDirectory))
+            throw new DirectoryNotFoundException("Working directory not found: " + _workingDirectory);
+
 
         var psi = new ProcessStartInfo
         {
@@ -31,10 +39,10 @@ public class GrammarService(IPathService pathService) : IGrammarService
         if (process == null)
             return null;
 
-        string output = await process.StandardOutput.ReadToEndAsync();
-        string error = await process.StandardError.ReadToEndAsync();
+        var output = await process.StandardOutput.ReadToEndAsync();
+        var error = await process.StandardError.ReadToEndAsync();
 
-        process.WaitForExit();
+        await process.WaitForExitAsync();
 
         if (!string.IsNullOrWhiteSpace(error))
         {

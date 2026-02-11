@@ -10,9 +10,7 @@
     x:DataType="vm:PageViewModel"
     mc:Ignorable="d">
 
-    <Border
-        Background="{DynamicResource DefaultFillBrush}"
-        PointerPressed="OnPageClicked">
+    <Border Background="{DynamicResource DefaultFillBrush}" PointerPressed="OnPageClicked">
 
         <Grid Background="{DynamicResource DefaultBrightForegroundBrush}">
 
@@ -22,7 +20,10 @@
             </Grid.RowDefinitions>
 
             <Rectangle Grid.Row="0" Fill="White" />
-            <TextBlock Grid.Row="1" Background="Gray" Text="{Binding Title}" />
+            <TextBlock
+                Grid.Row="1"
+                Background="Gray"
+                Text="{Binding Title}" />
 
         </Grid>
     </Border>

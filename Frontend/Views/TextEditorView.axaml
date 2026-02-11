@@ -19,7 +19,7 @@
             Command="{Binding SaveCommand}"
             Content="Save"
             DockPanel.Dock="Top" />
-        
+
         <Button
             Command="{Binding AnalyseGrammarCommand}"
             Content="Analyse Grammar"

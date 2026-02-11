@@ -1,5 +1,4 @@
 using System;
-using Avalonia;
 using Avalonia.Controls;
 using ClearText.Services;
 using ClearText.ViewModels;
@@ -14,30 +13,19 @@ public partial class TextEditorView : UserControl
     {
         InitializeComponent();
 
-        //Attach TextEditor for underline Squigglies
         _markerService = new TextMarkerService(Editor.Document);
-
         Editor.TextArea.TextView.BackgroundRenderers.Add(_markerService);
+    }
 
-
-
-        // When DataContext changes, sync VM → Editor
-        _ = this.GetObservable(DataContextProperty)
-    .Subscribe(dc =>
+    protected override void OnDataContextChanged(EventArgs e)
     {
-        if (dc is not TextEditorViewModel vm) return;
+        base.OnDataContextChanged(e);
 
-        //Text Loaded, can now load squigglies
+        if (DataContext is not TextEditorViewModel vm)
+            return;
+
         Editor.Text = vm.DocumentText;
-
-        LoadSquigglies();
-
-        vm.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(vm.Errors))
-                LoadSquigglies();
-        };
-
+        LoadSquigglies(vm);
 
         vm.PropertyChanged += (_, e) =>
         {
@@ -46,19 +34,25 @@ public partial class TextEditorView : UserControl
             {
                 Editor.Text = vm.DocumentText;
             }
+
+            if (e.PropertyName == nameof(vm.Errors))
+            {
+                LoadSquigglies(vm);
+            }
         };
-    });
+
+        Editor.TextChanged += (_, _) =>
+        {
+            if (vm.DocumentText != Editor.Text)
+                vm.DocumentText = Editor.Text;
+        };
+
     }
 
-    private void LoadSquigglies()
+    private void LoadSquigglies(TextEditorViewModel vm)
     {
         _markerService.ClearMarkers();
-
-        if (DataContext is TextEditorViewModel vm)
-        {
-            _markerService.LoadSquigglies(vm.DocumentText, vm.Errors ?? []);
-        }
-
+        _markerService.LoadSquigglies(vm.DocumentText, vm.Errors ?? []);
         Editor.TextArea.TextView.InvalidateVisual();
     }
 }

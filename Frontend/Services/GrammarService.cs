@@ -30,6 +30,7 @@ public class GrammarService(IPathService pathService) : IGrammarService
             WorkingDirectory = _workingDirectory,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            RedirectStandardInput = true,
             UseShellExecute = false,
             CreateNoWindow = true
         };
@@ -38,6 +39,9 @@ public class GrammarService(IPathService pathService) : IGrammarService
 
         if (process == null)
             return null;
+
+        await process.StandardInput.WriteAsync(text);
+        process.StandardInput.Close();
 
         var output = await process.StandardOutput.ReadToEndAsync();
         var error = await process.StandardError.ReadToEndAsync();

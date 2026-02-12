@@ -129,8 +129,10 @@ public class TextEditorViewModel : ViewModelBase
     {
         try
         {
+            _toastService.CreateAndShowInfoToast("Analyzing grammar...");
             var response = await _grammarService.CheckGrammarAsync(DocumentText);
             Errors = response?.Errors;
+            _toastService.CreateAndShowInfoToast("Grammar analysis complete.");
         }
         catch (Exception e)
         {

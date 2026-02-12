@@ -53,6 +53,6 @@ public partial class TextEditorView : UserControl
     {
         _markerService.ClearMarkers();
         _markerService.LoadSquigglies(vm.DocumentText, vm.Errors ?? []);
-        Editor.TextArea.TextView.InvalidateVisual();
+        Editor.TextArea.TextView.Redraw();
     }
 }

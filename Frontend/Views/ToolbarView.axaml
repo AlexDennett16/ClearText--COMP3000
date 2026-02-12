@@ -1,22 +1,22 @@
 <UserControl
-  x:Class="ClearText.Views.ToolbarView"
-  xmlns="https://github.com/avaloniaui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-  xmlns:vm="clr-namespace:ClearText.ViewModels"
-  d:DesignHeight="1080"
-  d:DesignWidth="1920"
-  x:DataType="vm:ToolbarViewModel"
-  mc:Ignorable="d">
+    x:Class="ClearText.Views.ToolbarView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:ClearText.ViewModels"
+    d:DesignHeight="1080"
+    d:DesignWidth="1920"
+    x:DataType="vm:ToolbarViewModel"
+    mc:Ignorable="d">
 
 
   <StackPanel Background="{DynamicResource DefaultTabBackgroundBrush}" Orientation="Horizontal">
     <Image Source="../Resources/ClearTextLogo.png" />
     <TextBlock
-      HorizontalAlignment="Center"
-      VerticalAlignment="Center"
-      Text="ToolbarView" />
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Text="ToolbarView" />
   </StackPanel>
 
 </UserControl>

@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Avalonia;
 using Avalonia.Media;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
+using ClearText.DataObjects;
 
 namespace ClearText.Services
 {
@@ -42,23 +45,21 @@ namespace ClearText.Services
         {
             var geometry = new StreamGeometry();
 
-            using (var ctx = geometry.Open())
+            using var ctx = geometry.Open();
+            ctx.BeginFigure(start, false);
+
+            var x = start.X;
+            var up = true;
+
+            while (x < end.X)
             {
-                ctx.BeginFigure(start, false);
-
-                double x = start.X;
-                bool up = true;
-
-                while (x < end.X)
-                {
-                    x += 4;
-                    double y = start.Y + (up ? -amplitude : amplitude);
-                    ctx.LineTo(new Point(x, y));
-                    up = !up;
-                }
-
-                ctx.EndFigure(false);
+                x += 4;
+                var y = start.Y + (up ? -amplitude : amplitude);
+                ctx.LineTo(new Point(x, y));
+                up = !up;
             }
+
+            ctx.EndFigure(false);
 
             return geometry;
         }
@@ -68,24 +69,21 @@ namespace ClearText.Services
             _markers.Clear();
         }
 
-        public void LoadSquigglies(string editorText)
+        public void LoadSquigglies(string editorText, IReadOnlyList<ClearTextError> errors)
         {
-
-            var search = "banana";
             var start = 0;
-
-            while (true)
+            foreach (var search in errors.Select(error => error.Token))
             {
-                var index = editorText.IndexOf(search, start, StringComparison.OrdinalIgnoreCase);
-                if (index == -1)
-                    break;
+                while (true)
+                {
+                    var index = editorText.IndexOf(search, start, StringComparison.OrdinalIgnoreCase);
+                    if (index == -1)
+                        break;
 
-                AddMarker(index, search.Length, Colors.Red);
-
-                start = index + search.Length;
+                    AddMarker(index, search.Length, Colors.Red);
+                    start = index + search.Length;
+                }
             }
-
-
         }
 
         private class TextMarker : TextSegment

@@ -1,58 +1,58 @@
 <UserControl
-  x:Class="ClearText.Views.PageSelectionView"
-  xmlns="https://github.com/avaloniaui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-  xmlns:views="clr-namespace:ClearText.Views"
-  xmlns:vm="clr-namespace:ClearText.ViewModels"
-  d:DesignHeight="1080"
-  d:DesignWidth="1920"
-  x:DataType="vm:PageSelectionViewModel"
-  mc:Ignorable="d">
+    x:Class="ClearText.Views.PageSelectionView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="clr-namespace:ClearText.Views"
+    xmlns:vm="clr-namespace:ClearText.ViewModels"
+    d:DesignHeight="1080"
+    d:DesignWidth="1920"
+    x:DataType="vm:PageSelectionViewModel"
+    mc:Ignorable="d">
 
   <Grid Margin="83" RowDefinitions="Auto, *">
     <StackPanel
-      Grid.Row="0"
-      Margin="0,0,0,25"
-      HorizontalAlignment="Left"
-      Orientation="Horizontal"
-      Spacing="100">
+        Grid.Row="0"
+        Margin="0,0,0,25"
+        HorizontalAlignment="Left"
+        Orientation="Horizontal"
+        Spacing="100">
       <Button
-        Width="150"
-        Height="150"
-        Command="{Binding CreateNewDocumentCommand}"
-        Content="New Document" />
+          Width="150"
+          Height="150"
+          Command="{Binding CreateNewDocumentCommand}"
+          Content="New Document" />
 
       <Button
-        Width="150"
-        Height="150"
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center"
-        Content="New Template" />
+          Width="150"
+          Height="150"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Content="New Template" />
     </StackPanel>
     <StackPanel Grid.Row="1" Orientation="Horizontal">
       <ScrollViewer
-        HorizontalAlignment="Stretch"
-        VerticalAlignment="Stretch"
-        VerticalScrollBarVisibility="Auto">
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          VerticalScrollBarVisibility="Auto">
         <Border Margin="25">
           <ItemsControl ItemsSource="{Binding Pages}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel
-                  Width="{Binding WrapWidth}"
-                  HorizontalAlignment="Left"
-                  Orientation="Horizontal" />
+                    Width="{Binding WrapWidth}"
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal" />
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
 
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:PageViewModel">
                 <views:PageView
-                  Width="200"
-                  Height="322"
-                  Margin="10" />
+                    Width="200"
+                    Height="322"
+                    Margin="10" />
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>

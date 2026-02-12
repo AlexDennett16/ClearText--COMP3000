@@ -1,9 +1,5 @@
 using System;
-using System.Diagnostics;
-using System.Text.Json;
-using System.Threading.Tasks;
 using ClearText.BaseTypes.BaseViewModels;
-using ClearText.DataObjects;
 using ClearText.Interfaces;
 using ReactiveUI;
 

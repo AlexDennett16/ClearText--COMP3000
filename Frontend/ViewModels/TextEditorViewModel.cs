@@ -6,6 +6,7 @@ using ClearText.BaseTypes.BaseViewModels;
 using ReactiveUI;
 using DocumentFormat.OpenXml.Packaging;
 using System.Linq;
+using ClearText.DataObjects;
 using ClearText.Interfaces;
 
 // Explicit OpenXML aliases to avoid collisions with avalonia controls
@@ -21,6 +22,7 @@ public class TextEditorViewModel : ViewModelBase
     private readonly string _filePath;
     private readonly List<WordRun> _originalRuns = [];
     private readonly IToastService _toastService;
+    private readonly IGrammarService _grammarService;
     private string _documentText = string.Empty;
 
     public string DocumentText
@@ -31,16 +33,26 @@ public class TextEditorViewModel : ViewModelBase
 
     public ReactiveCommand<Unit, Unit> ReturnCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+    public ReactiveCommand<Unit, Unit> AnalyseGrammarCommand { get; }
+
+    private IReadOnlyList<ClearTextError>? _errors = [];
+    public IReadOnlyList<ClearTextError>? Errors
+    {
+        get => _errors;
+        private set => this.RaiseAndSetIfChanged(ref _errors, value);
+    }
 
     public TextEditorViewModel(string filePath, Action returnCallback, IAppServices appServices)
     {
         _filePath = filePath;
         _toastService = appServices.ToastService;
+        _grammarService = appServices.GrammarService;
 
         DocumentText = LoadDocxText(filePath);
 
         ReturnCommand = ReactiveCommand.Create(returnCallback);
         SaveCommand = ReactiveCommand.Create(SaveDocxText);
+        AnalyseGrammarCommand = ReactiveCommand.Create(AnalyseGrammarAction);
     }
 
     private void SaveDocxText()
@@ -111,5 +123,20 @@ public class TextEditorViewModel : ViewModelBase
         }
 
         return sb.ToString();
+    }
+
+    private async void AnalyseGrammarAction()
+    {
+        try
+        {
+            _toastService.CreateAndShowInfoToast("Analyzing grammar...");
+            var response = await _grammarService.CheckGrammarAsync(DocumentText);
+            Errors = response?.Errors;
+            _toastService.CreateAndShowInfoToast("Grammar analysis complete.");
+        }
+        catch (Exception e)
+        {
+            throw e; // TODO handle exception
+        }
     }
 }

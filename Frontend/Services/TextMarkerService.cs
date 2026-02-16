@@ -13,12 +13,6 @@ namespace ClearText.Services
     {
         private readonly TextSegmentCollection<TextMarker> _markers = new(document);
 
-        private void AddMarker(int startOffset, int length, Color color, ClearTextError error)
-        {
-            var marker = new TextMarker(startOffset, length, color, error);
-            _markers.Add(marker);
-        }
-
         public void Draw(TextView textView, DrawingContext drawingContext)
         {
             if (!textView.VisualLinesValid)
@@ -64,12 +58,24 @@ namespace ClearText.Services
             return geometry;
         }
 
-        public void ClearMarkers()
+        private void AddMarker(int startOffset, int length, Color color, ClearTextError error)
+        {
+            var marker = new TextMarker(startOffset, length, color, error);
+            _markers.Add(marker);
+        }
+
+        internal void ClearMarkers()
         {
             _markers.Clear();
         }
 
-        public void LoadSquigglies(string editorText, IReadOnlyList<ClearTextError> errors)
+        internal void Remove(TextMarker marker)
+        {
+            _markers.Remove(marker);
+        }
+
+
+        internal void LoadSquigglies(string editorText, IReadOnlyList<ClearTextError> errors)
         {
             var start = 0;
             foreach (var error in errors)
@@ -87,8 +93,15 @@ namespace ClearText.Services
             }
         }
 
+        internal TextMarker? GetMarkerAtOffset(int offset)
+        {
+            return _markers.FirstOrDefault(m =>
+                m.StartOffset <= offset &&
+                offset <= m.EndOffset);
+        }
 
-        private class TextMarker : TextSegment
+
+        internal class TextMarker : TextSegment
         {
             public Color Color { get; }
             public ClearTextError Error { get; }

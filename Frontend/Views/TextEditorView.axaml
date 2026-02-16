@@ -5,9 +5,32 @@
     xmlns:avaloniaEdit="using:AvaloniaEdit"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:primitives="clr-namespace:Avalonia.Controls.Primitives;assembly=Avalonia.Controls"
     xmlns:vm="clr-namespace:ClearText.ViewModels"
     x:DataType="vm:TextEditorViewModel"
     mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <Flyout x:Key="ErrorFlyout">
+                <StackPanel Margin="8">
+                    <TextBlock x:Name="ErrorMessage" FontWeight="Bold" />
+                    <ItemsControl x:Name="SuggestionList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button
+                                    Margin="0,4,0,0"
+                                    Click="SuggestionButtonOnClick"
+                                    Content="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Flyout>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+
 
     <DockPanel>
         <Button
@@ -33,6 +56,7 @@
                 x:Name="Editor"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
+                primitives:FlyoutBase.AttachedFlyout="{StaticResource ErrorFlyout}"
                 ShowLineNumbers="True"
                 WordWrap="True" />
         </Border>

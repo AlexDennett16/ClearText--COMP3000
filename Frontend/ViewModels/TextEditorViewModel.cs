@@ -53,6 +53,9 @@ public class TextEditorViewModel : ViewModelBase
         ReturnCommand = ReactiveCommand.Create(returnCallback);
         SaveCommand = ReactiveCommand.Create(SaveDocxText);
         AnalyseGrammarCommand = ReactiveCommand.Create(AnalyseGrammarAction);
+
+        //Run grammar check on entry to populate squigglies immediately
+        AnalyseGrammarAction();
     }
 
     private void SaveDocxText()

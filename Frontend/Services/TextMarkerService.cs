@@ -13,9 +13,9 @@ namespace ClearText.Services
     {
         private readonly TextSegmentCollection<TextMarker> _markers = new(document);
 
-        public void AddMarker(int startOffset, int length, Color color)
+        private void AddMarker(int startOffset, int length, Color color, ClearTextError error)
         {
-            var marker = new TextMarker(startOffset, length, color);
+            var marker = new TextMarker(startOffset, length, color, error);
             _markers.Add(marker);
         }
 
@@ -72,30 +72,35 @@ namespace ClearText.Services
         public void LoadSquigglies(string editorText, IReadOnlyList<ClearTextError> errors)
         {
             var start = 0;
-            foreach (var search in errors.Select(error => error.Token))
+            foreach (var error in errors)
             {
+                var search = error.Token;
                 while (true)
                 {
                     var index = editorText.IndexOf(search, start, StringComparison.OrdinalIgnoreCase);
                     if (index == -1)
                         break;
 
-                    AddMarker(index, search.Length, Colors.Red);
+                    AddMarker(index, search.Length, Colors.Red, error);
                     start = index + search.Length;
                 }
             }
         }
 
+
         private class TextMarker : TextSegment
         {
             public Color Color { get; }
+            public ClearTextError Error { get; }
 
-            public TextMarker(int start, int length, Color color)
+            public TextMarker(int start, int length, Color color, ClearTextError error)
             {
                 StartOffset = start;
                 Length = length;
                 Color = color;
+                Error = error;
             }
+
         }
     }
 }

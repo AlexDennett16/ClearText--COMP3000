@@ -13,6 +13,7 @@ using ClearText.Interfaces;
 using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using WordParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using WordText = DocumentFormat.OpenXml.Wordprocessing.Text;
+using System.Diagnostics;
 
 
 namespace ClearText.ViewModels;
@@ -133,7 +134,14 @@ public class TextEditorViewModel : ViewModelBase
         try
         {
             _toastService.CreateAndShowInfoToast("Analyzing grammar...");
+
+            var sw = Stopwatch.StartNew();
+
             var response = await _grammarService.CheckGrammarAsync(DocumentText);
+
+            sw.Stop();
+            _toastService.CreateAndShowInfoToast($"Grammar analysis took {sw.ElapsedMilliseconds}ms");
+
             Errors = response?.Errors;
             _toastService.CreateAndShowInfoToast("Grammar analysis complete.");
         }

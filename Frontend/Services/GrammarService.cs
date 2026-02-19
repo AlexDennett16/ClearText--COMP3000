@@ -12,16 +12,20 @@ public class GrammarService(IPathService pathService) : IGrammarService
 {
     private readonly string _pythonPath = pathService.LoadPythonFilePath().PythonExe;
     private readonly string _workingDirectory = pathService.LoadPythonFilePath().WorkingDirectory;
+    private Process? _pythonProcess;
 
-    public async Task<ClearTextResult?> CheckGrammarAsync(string text)
+    private void EnsurePythonPersists()
     {
+        if (_pythonProcess != null && !_pythonProcess.HasExited)
+        {
+            return; //TODO setup python error
+        }
 
         if (!File.Exists(_pythonPath))
             throw new FileNotFoundException("Python executable not found", _pythonPath);
 
         if (!Directory.Exists(_workingDirectory))
             throw new DirectoryNotFoundException("Working directory not found: " + _workingDirectory);
-
 
         var psi = new ProcessStartInfo
         {
@@ -35,24 +39,26 @@ public class GrammarService(IPathService pathService) : IGrammarService
             CreateNoWindow = true
         };
 
-        using var process = Process.Start(psi);
+        _pythonProcess = Process.Start(psi);
+    }
 
-        if (process == null)
+    public async Task<ClearTextResult?> CheckGrammarAsync(string text)
+    {
+        EnsurePythonPersists();
+
+        if (_pythonProcess == null)
             return null;
 
-        await process.StandardInput.WriteAsync(text);
-        process.StandardInput.Close();
+        await _pythonProcess.StandardInput.WriteLineAsync(text);
+        await _pythonProcess.StandardInput.FlushAsync();
 
-        var output = await process.StandardOutput.ReadToEndAsync();
-        var error = await process.StandardError.ReadToEndAsync();
+        var output = await _pythonProcess.StandardOutput.ReadLineAsync();
 
-        await process.WaitForExitAsync();
-
-        if (!string.IsNullOrWhiteSpace(error))
-        {
-            Console.WriteLine("Python error: " + error);
-            return null;
-        }
+        //if (!string.IsNullOrWhiteSpace(output) && output.StartsWith("__PYTHON_ERROR__"))
+        //{
+        //    Console.WriteLine("Python error: " + output); //TODO can remove logging
+        //    return null;
+        //}
 
         Console.WriteLine("Python output: " + output);
         var result = JsonSerializer.Deserialize<ClearTextResult>(output, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });

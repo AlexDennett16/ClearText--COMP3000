@@ -4,7 +4,12 @@ from AI.Pipeline.pipeline import grammar_pipeline
 
 if __name__ == "__main__":
 
-    text = sys.stdin.read()
+    for line in sys.stdin:
+        text = line.strip()
+        if not text:
+            continue
 
-    result = grammar_pipeline(text)
-    print(json.dumps(result, indent=2))
+        result = grammar_pipeline(text)
+
+        print(json.dumps(result))
+        sys.stdout.flush()

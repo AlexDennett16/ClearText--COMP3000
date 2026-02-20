@@ -10,7 +10,7 @@ def check_capitalization_errors(tokens: List[str]) -> List[str]:
                     "type": "capitalization",
                     "token": token,
                     "index": i,
-                    "suggestion": token.capitalize(),
+                    "suggestions": [token.capitalize()],
                 }
             )
     return errors

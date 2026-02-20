@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using ClearText.DataObjects;
 using ClearText.Interfaces;
@@ -13,6 +14,8 @@ public class GrammarService(IPathService pathService) : IGrammarService
     private readonly string _pythonPath = pathService.LoadPythonFilePath().PythonExe;
     private readonly string _workingDirectory = pathService.LoadPythonFilePath().WorkingDirectory;
     private Process? _pythonProcess;
+    private readonly SemaphoreSlim _lock = new(1, 1);
+
 
     private void EnsurePythonPersists()
     {
@@ -44,25 +47,40 @@ public class GrammarService(IPathService pathService) : IGrammarService
 
     public async Task<ClearTextResult?> CheckGrammarAsync(string text)
     {
-        EnsurePythonPersists();
+        //UI locks are in place, but ensures no crashes
+        await _lock.WaitAsync();
+        try
+        {
+            EnsurePythonPersists();
 
-        if (_pythonProcess == null)
-            return null;
+            if (_pythonProcess == null)
+                return null;
 
-        await _pythonProcess.StandardInput.WriteLineAsync(text);
-        await _pythonProcess.StandardInput.FlushAsync();
+            await _pythonProcess.StandardInput.WriteLineAsync(text);
+            await _pythonProcess.StandardInput.FlushAsync();
 
-        var output = await _pythonProcess.StandardOutput.ReadLineAsync();
+            var output = await _pythonProcess.StandardOutput.ReadLineAsync();
 
-        //if (!string.IsNullOrWhiteSpace(output) && output.StartsWith("__PYTHON_ERROR__"))
-        //{
-        //    Console.WriteLine("Python error: " + output); //TODO can remove logging
-        //    return null;
-        //}
+            //Covers the null or empty cases, which likely indicates a python error
+            if (string.IsNullOrWhiteSpace(output))
+            {
+                Console.WriteLine("Python error, Empty or Null output: " + await _pythonProcess.StandardError.ReadToEndAsync());
+                return new ClearTextResult
+                {
+                    Errors = [],
+                    Text = "",
+                    Tokens = []
+                }; ;
+            }
 
-        Console.WriteLine("Python output: " + output);
-        var result = JsonSerializer.Deserialize<ClearTextResult>(output, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        Console.WriteLine("Deserialized result: " + result);
-        return result;
+            Console.WriteLine("Python output: " + output);
+            var result = JsonSerializer.Deserialize<ClearTextResult>(output, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Console.WriteLine("Deserialized result: " + result);
+            return result;
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 }

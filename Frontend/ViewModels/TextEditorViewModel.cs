@@ -14,6 +14,7 @@ using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using WordParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using WordText = DocumentFormat.OpenXml.Wordprocessing.Text;
 using System.Diagnostics;
+using System.Text.Json;
 
 
 namespace ClearText.ViewModels;
@@ -25,6 +26,7 @@ public class TextEditorViewModel : ViewModelBase
     private readonly IToastService _toastService;
     private readonly IGrammarService _grammarService;
     private string _documentText = string.Empty;
+    private bool _isGrammarChecking;
 
     public string DocumentText
     {
@@ -131,23 +133,34 @@ public class TextEditorViewModel : ViewModelBase
 
     private async void AnalyseGrammarAction()
     {
+        if (_isGrammarChecking)
+        {
+            _toastService.CreateAndShowInfoToast("Grammar analysis already running.");
+            return;
+        }
+
         try
         {
+            _isGrammarChecking = true;
             _toastService.CreateAndShowInfoToast("Analyzing grammar...");
 
             var sw = Stopwatch.StartNew();
-
-            var response = await _grammarService.CheckGrammarAsync(DocumentText);
-
+            var payload = JsonSerializer.Serialize(new { text = DocumentText });
+            var response = await _grammarService.CheckGrammarAsync(payload);
             sw.Stop();
-            _toastService.CreateAndShowInfoToast($"Grammar analysis took {sw.ElapsedMilliseconds}ms");
 
             Errors = response?.Errors;
-            _toastService.CreateAndShowInfoToast("Grammar analysis complete.");
+            _toastService.CreateAndShowInfoToast($"Grammar analysis took {sw.ElapsedMilliseconds}ms");
         }
         catch (Exception e)
         {
-            throw e; // TODO handle exception
+            _toastService.CreateAndShowErrorToast("Grammar analysis failed.");
+            throw;
+        }
+        finally
+        {
+            _isGrammarChecking = false;
         }
     }
+
 }

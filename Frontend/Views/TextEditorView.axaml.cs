@@ -1,23 +1,24 @@
 using System;
-using System.Linq;
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using AvaloniaEdit.Rendering;
+using Avalonia.ReactiveUI;
 using ClearText.DataObjects;
 using ClearText.Services;
 using ClearText.ViewModels;
+using ReactiveUI;
 using static ClearText.Services.TextMarkerService;
 
 namespace ClearText.Views;
 
-public partial class TextEditorView : UserControl
+public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
 {
-    readonly TextMarkerService _markerService;
-    private ClearTextError? _activeError;
+    private readonly TextMarkerService _markerService;
     private TextMarker? _activeMarker;
+
     public TextEditorView()
     {
         InitializeComponent();
@@ -25,46 +26,16 @@ public partial class TextEditorView : UserControl
         _markerService = new TextMarkerService(Editor.Document);
         Editor.TextArea.TextView.BackgroundRenderers.Add(_markerService);
         Editor.TextArea.PointerPressed += OnPointerPressed;
-    }
 
-    protected override void OnDataContextChanged(EventArgs e)
-    {
-        base.OnDataContextChanged(e);
-
-        if (DataContext is not TextEditorViewModel vm)
-            return;
-
-        Editor.Text = vm.DocumentText;
-        LoadSquigglies(vm);
-
-        vm.PropertyChanged += (_, e) =>
+        this.WhenActivated(disposables =>
         {
-            if (e.PropertyName == nameof(vm.DocumentText) &&
-                Editor.Text != vm.DocumentText)
-            {
-                Editor.Text = vm.DocumentText;
-            }
+            this.Bind(ViewModel, vm => vm.DocumentText, v => v.Editor.Text)
+                .DisposeWith(disposables);
 
-            if (e.PropertyName == nameof(vm.Errors))
-            {
-                LoadSquigglies(vm);
-            }
-        };
-
-        Editor.TextChanged += (_, _) =>
-        {
-            if (vm.DocumentText != Editor.Text)
-                vm.DocumentText = Editor.Text;
-        };
-
-        SuggestionList.PointerPressed += (_, e) =>
-        {
-            if (e.Source is Button btn && btn.Content is string suggestion)
-            {
-                ApplySuggestion(suggestion);
-            }
-        };
-
+            this.WhenAnyValue(v => v.ViewModel!.Errors)
+                .Subscribe(_ => LoadSquigglies(ViewModel))
+                .DisposeWith(disposables);
+        });
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -81,24 +52,17 @@ public partial class TextEditorView : UserControl
         if (marker != null)
         {
             _activeMarker = marker;
-
-            var rect = GetMarkerRect(Editor.TextArea.TextView, marker);
-            if (rect != null)
-            {
-                ShowErrorPopup(marker.Error, pos);
-            }
+            ShowErrorPopup(marker.Error);
         }
         else
         {
-            // Clicked outside any marker, close the flyout
             var flyout = (Flyout)Editor.GetValue(FlyoutBase.AttachedFlyoutProperty)!;
             flyout.Hide();
         }
     }
 
-    private void ShowErrorPopup(ClearTextError error, Point clickPos)
+    private void ShowErrorPopup(ClearTextError error)
     {
-        _activeError = error;
         ErrorMessage.Text = $"{error.Type}: \"{error.Token}\"";
 
         SuggestionList.ItemsSource =
@@ -106,41 +70,24 @@ public partial class TextEditorView : UserControl
                 ? error.Suggestions
                 : new[] { "(No suggestions available)" };
 
-
         var flyout = (Flyout)Editor.GetValue(FlyoutBase.AttachedFlyoutProperty)!;
-
-
         flyout.ShowAt(Editor, true);
     }
 
-    internal static Rect? GetMarkerRect(TextView textView, TextMarker marker)
-    {
-        var rects = BackgroundGeometryBuilder.GetRectsForSegment(textView, marker);
-        return rects.FirstOrDefault();
-    }
-
-    //Replace text in editor with suggestion and remove squiggly
     private void ApplySuggestion(string suggestion)
     {
-        if (DataContext is not TextEditorViewModel vm)
+        if (ViewModel == null || _activeMarker == null)
             return;
-
-        if (_activeMarker == null)
-            return;
-
-
 
         Editor.Document.Replace(
-        _activeMarker.StartOffset,
-        _activeMarker.Length,
-        suggestion
+            _activeMarker.StartOffset,
+            _activeMarker.Length,
+            suggestion
         );
 
         _markerService.Remove(_activeMarker);
         Editor.TextArea.TextView.Redraw();
 
-
-        vm.DocumentText = Editor.Text;
         var flyout = (Flyout)Editor.GetValue(FlyoutBase.AttachedFlyoutProperty)!;
         flyout.Hide();
     }
@@ -156,7 +103,7 @@ public partial class TextEditorView : UserControl
     private void LoadSquigglies(TextEditorViewModel vm)
     {
         _markerService.ClearMarkers();
-        _markerService.LoadSquigglies(vm.DocumentText, vm.Errors ?? []);
+        _markerService.LoadSquigglies(Editor.Text, vm.Errors ?? []);
         Editor.TextArea.TextView.Redraw();
     }
 }

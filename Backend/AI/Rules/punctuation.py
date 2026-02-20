@@ -12,7 +12,7 @@ def check_punctuation_errors(tokens: List[str]) -> List[str]:
                         "type": "duplicate punctuation",
                         "token": token,
                         "index": i,
-                        "suggestion": token,
+                        "suggestions": [token],
                     }
                 )
     return errors

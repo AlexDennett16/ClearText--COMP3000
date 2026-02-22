@@ -35,5 +35,10 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
 
         Services.GrammarService.StartupAsync();
+
+
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => Services.GrammarService.KillPythonProcess();
+        AppDomain.CurrentDomain.UnhandledException += (_, _) => Services.GrammarService.KillPythonProcess();
+
     }
 }

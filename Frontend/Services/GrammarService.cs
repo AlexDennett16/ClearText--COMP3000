@@ -47,6 +47,8 @@ public class GrammarService(IPathService pathService) : IGrammarService
             CreateNoWindow = true
         };
 
+        psi.EnvironmentVariables["CREATE_PROCESS_GROUP"] = "1";
+
         _pythonProcess = Process.Start(psi);
     }
 
@@ -86,6 +88,16 @@ public class GrammarService(IPathService pathService) : IGrammarService
         finally
         {
             _lock.Release();
+        }
+    }
+
+    public void KillPythonProcess()
+    {
+        if (_pythonProcess != null && !_pythonProcess.HasExited)
+        {
+            _pythonProcess.Kill(true);
+            _pythonProcess.Dispose();
+            _pythonProcess = null;
         }
     }
 }

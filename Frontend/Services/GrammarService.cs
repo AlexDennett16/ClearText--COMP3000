@@ -17,6 +17,11 @@ public class GrammarService(IPathService pathService) : IGrammarService
     private readonly SemaphoreSlim _lock = new(1, 1);
 
 
+    public async Task StartupAsync()
+    {
+        await Task.Run(() => EnsurePythonPersists());
+    }
+
     private void EnsurePythonPersists()
     {
         if (_pythonProcess != null && !_pythonProcess.HasExited)

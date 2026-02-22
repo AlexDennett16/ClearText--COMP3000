@@ -5,5 +5,6 @@ namespace ClearText.Interfaces;
 
 public interface IGrammarService
 {
+    Task StartupAsync();
     Task<ClearTextResult?> CheckGrammarAsync(string text);
 }

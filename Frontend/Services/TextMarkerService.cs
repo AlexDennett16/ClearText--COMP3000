@@ -74,6 +74,11 @@ namespace ClearText.Services
             _markers.Remove(marker);
         }
 
+        internal List<TextMarker> GetMarkers()
+        {
+            return _markers.ToList();
+        }
+
 
         internal void LoadSquigglies(string editorText, IReadOnlyList<ClearTextError> errors)
         {

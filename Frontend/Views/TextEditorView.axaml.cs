@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
@@ -6,6 +7,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
+using ClearText.Constants;
 using ClearText.DataObjects;
 using ClearText.Services;
 using ClearText.ViewModels;
@@ -68,10 +70,61 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         SuggestionList.ItemsSource =
             error.Suggestions is { Count: > 0 }
                 ? error.Suggestions
-                : new[] { "(No suggestions available)" };
+                : new[] { ClearTextErrorConstants.NoSuggestions };
 
         var flyout = (Flyout)Editor.GetValue(FlyoutBase.AttachedFlyoutProperty)!;
         flyout.ShowAt(Editor, true);
+    }
+
+    private void HandleDuplicatePunctuation(string suggestion)
+    {
+        // Only do the expansion for duplicate punctuation errors
+
+
+        int start = _activeMarker.StartOffset;
+        int end = start + _activeMarker.Length;
+
+
+        // Expand left
+        while (start > 0)
+        {
+            char c = Editor.Document.GetCharAt(start - 1);
+            if (!char.IsPunctuation(c))
+                break;
+            start--;
+        }
+
+        // Expand right
+        while (end < Editor.Document.TextLength)
+        {
+            char c = Editor.Document.GetCharAt(end);
+            if (!char.IsPunctuation(c))
+                break;
+            end++;
+        }
+
+        int length = end - start;
+
+        Editor.Document.Replace(start, length, suggestion);
+        RemoveMarkersInRange(start, end);
+
+    }
+
+    private void RemoveMarkersInRange(int start, int end)
+    {
+        var markers = _markerService.GetMarkers();
+
+        foreach (var marker in markers)
+        {
+            int mStart = marker.StartOffset;
+            int mEnd = marker.StartOffset + marker.Length;
+
+            bool overlaps =
+                !(mEnd <= start || mStart >= end); // intervals overlap
+
+            if (overlaps)
+                _markerService.Remove(marker);
+        }
     }
 
     private void ApplySuggestion(string suggestion)
@@ -79,11 +132,22 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         if (ViewModel == null || _activeMarker == null)
             return;
 
-        Editor.Document.Replace(
-            _activeMarker.StartOffset,
-            _activeMarker.Length,
-            suggestion
-        );
+        if (_activeMarker.Error.Suggestions is not List<string> suggestions || suggestions[0] == ClearTextErrorConstants.NoSuggestions)
+            return;
+
+
+        if (_activeMarker.Error.Type == ClearTextErrorConstants.DuplicatePunctuation)
+        {
+            HandleDuplicatePunctuation(suggestion);
+        }
+        else
+        {
+            Editor.Document.Replace(
+                _activeMarker.StartOffset,
+                _activeMarker.Length,
+                suggestion
+            );
+        }
 
         _markerService.Remove(_activeMarker);
         Editor.TextArea.TextView.Redraw();

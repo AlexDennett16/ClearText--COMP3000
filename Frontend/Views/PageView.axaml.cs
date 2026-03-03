@@ -13,11 +13,12 @@ public partial class PageView : UserControl
     }
 
     private void OnPageClicked(object sender, PointerPressedEventArgs e)
-{
-    if (DataContext is PageViewModel vm)
     {
-        vm.OpenEditorCommand.Execute().Subscribe();
-    }
-}
+        //Don't openeditor if user clicks on meatball menu button
+        if (e.Source is Button)
+            return;
 
+        if (DataContext is PageViewModel vm)
+            vm.OpenEditorCommand.Execute().Subscribe();
+    }
 }

@@ -2,30 +2,44 @@
     x:Class="ClearText.Views.PageView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:ClearText.ViewModels"
-    d:DesignHeight="400"
-    d:DesignWidth="1920"
-    x:DataType="vm:PageViewModel"
-    mc:Ignorable="d">
+    x:DataType="vm:PageViewModel">
 
     <Border Background="{DynamicResource DefaultFillBrush}" PointerPressed="OnPageClicked">
-
         <Grid Background="{DynamicResource DefaultBrightForegroundBrush}">
-
             <Grid.RowDefinitions>
                 <RowDefinition Height="4*" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <Rectangle Grid.Row="0" Fill="White" />
-            <TextBlock
-                Grid.Row="1"
-                Background="Gray"
-                Text="{Binding Title}" />
 
+            <Grid Grid.Row="1" Background="Gray">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Margin="8,0" />
+
+                <!-- Meatball menu button -->
+                <Button Grid.Column="1"
+                        Content="⋮"
+                        FontSize="18"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        VerticalAlignment="Center"
+                        Margin="0,0,8,0">
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedRight">
+                            <StackPanel>
+                                <Button Command="{Binding RenameCommand}" Content="Rename" />
+                                <Button Command="{Binding DeleteCommand}" Content="Delete" />
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+            </Grid>
         </Grid>
     </Border>
-
 </UserControl>

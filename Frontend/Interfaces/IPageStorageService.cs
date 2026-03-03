@@ -4,11 +4,15 @@ namespace ClearText.Interfaces;
 
 public interface IPathService
 {
-  List<string> LoadPageFilePaths();
+    List<string> LoadPageFilePaths();
 
-  void SavePageFilePaths(IEnumerable<string> paths);
+    void SavePageFilePaths(IEnumerable<string> paths);
 
-  string CreatePageFilePath(string pageName);
+    void DeletePageFile(string path, IEnumerable<string> paths);
+    void ChangePageFilePath(string oldPath, string newPath, IEnumerable<string> paths);
 
-  (string PythonExe, string WorkingDirectory) LoadPythonFilePath(); //TODO return type is horrific, refactor this when implementing properly
+    string CreatePageFilePath(string pageName);
+
+    (string PythonExe, string WorkingDirectory)
+        LoadPythonFilePath(); //TODO return type is horrific, refactor this when implementing properly
 }

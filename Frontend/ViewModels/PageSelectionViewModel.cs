@@ -43,9 +43,32 @@ public class PageSelectionViewModel : ViewModelBase
 
         var paths = _storage.LoadPageFilePaths();
         Pages = new ObservableCollection<PageViewModel>(
-            paths.Select(p => new PageViewModel(p, openEditorCallback)));
+            paths.Select(p => new PageViewModel(p, _openEditor, RenamePage(p), DeletePage(p))));
 
         CreateNewDocumentCommand = ReactiveCommand.Create(CreateNewDocument);
+    }
+
+
+    private Action RenamePage(string filePath)
+    {
+        return () =>
+        {
+            _storage.ChangePageFilePath(filePath, filePath + "_renamed",
+                Pages.Select(p => p.FilePath).ToList()); //Implement acc renaming functionality
+            _toastService.CreateAndShowInfoToast(
+                $"Document '{System.IO.Path.GetFileNameWithoutExtension(filePath)}' renamed.");
+        };
+    }
+
+    private Action DeletePage(string filePath)
+    {
+        return () =>
+        {
+            Pages.Remove(Pages.First(p => p.FilePath == filePath));
+            _storage.DeletePageFile(filePath, Pages.Select(p => p.FilePath).ToList());
+            _toastService.CreateAndShowInfoToast(
+                $"Document '{System.IO.Path.GetFileNameWithoutExtension(filePath)}' deleted.");
+        };
     }
 
     private async void CreateNewDocument()
@@ -63,7 +86,7 @@ public class PageSelectionViewModel : ViewModelBase
             var newPath = _storage.CreatePageFilePath(pageName);
 
             // 5. Add to UI list
-            Pages.Insert(0, new PageViewModel(newPath, _openEditor));
+            Pages.Insert(0, new PageViewModel(newPath, _openEditor, RenamePage(newPath), DeletePage(newPath)));
 
             // 6. Persist
             _storage.SavePageFilePaths(Pages.Select(p => p.FilePath).ToList());

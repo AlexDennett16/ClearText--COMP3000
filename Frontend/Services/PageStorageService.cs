@@ -37,6 +37,13 @@ public class PathService : IPathService
         return config?.Pages ?? [];
     }
 
+    public void DeletePageFile(string path, IEnumerable<string> paths)
+    {
+        if (File.Exists(path))
+            File.Delete(path);
+        SavePageFilePaths(paths.Where(p => p != path));
+    }
+
     public void SavePageFilePaths(IEnumerable<string> paths)
     {
         var config = new PageConfig { Pages = paths.ToList() };
@@ -66,6 +73,13 @@ public class PathService : IPathService
         mainPart.Document.Save();
 
         return fullPath;
+    }
+
+    public void ChangePageFilePath(string oldPath, string newPath, IEnumerable<string> paths)
+    {
+        if (File.Exists(oldPath))
+            File.Move(oldPath, newPath); //TODO handle all sort of failure cases here
+        SavePageFilePaths(paths.Select(p => p == oldPath ? newPath : p));
     }
 
     public (string PythonExe, string WorkingDirectory) LoadPythonFilePath()

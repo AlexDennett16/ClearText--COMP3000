@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Threading.Tasks;
 using ClearText.BaseTypes.BaseViewModels;
 using ClearText.Dialogs;
 using ClearText.Interfaces;
@@ -58,14 +59,16 @@ public class PageSelectionViewModel : ViewModelBase
             Pages.Add(CreateVM(p));
     }
 
-    private void RenamePage(string oldPath)
+    private async Task RenamePage(string oldPath)
     {
+        var oldFileName = System.IO.Path.GetFileNameWithoutExtension(oldPath);
+        var newDocName = await CallDialog("New document name required.", oldFileName);
+
+
         var directory = System.IO.Path.GetDirectoryName(oldPath)!;
-        var nameWithoutExt =
-            System.IO.Path.GetFileNameWithoutExtension(oldPath) + "_renamed"; // TODO real rename dialog
         var extension = System.IO.Path.GetExtension(oldPath);
 
-        var newPath = directory + "\\" + nameWithoutExt + extension;
+        var newPath = directory + "\\" + newDocName + extension;
         _storage.RenamePage(oldPath, newPath);
         _toastService.CreateAndShowInfoToast("Document renamed.");
         RefreshPages();
@@ -79,15 +82,20 @@ public class PageSelectionViewModel : ViewModelBase
 
     private async void CreateNewDocument()
     {
-        var dialog = new PageNameDialogViewModel(_toastService);
-        var pageName = await _dialogService.ShowAsync(dialog);
-
-        if (pageName is null)
+        var pageName = await CallDialog("Document name required.");
+        if (string.IsNullOrWhiteSpace(pageName))
             return;
 
         var newPath = _storage.CreatePageFilePath(pageName);
         _storage.AddPage(newPath);
 
         _toastService.CreateAndShowInfoToast($"Document '{pageName}' created.");
+    }
+
+    private async Task<string> CallDialog(string errorMessage, string startingValue = "")
+    {
+        var dialog = new StringDialogViewModel(_toastService, errorMessage: errorMessage, startingValue: startingValue);
+        var result = await _dialogService.ShowAsync(dialog);
+        return result ?? throw new InvalidOperationException("No page name provided.");
     }
 }

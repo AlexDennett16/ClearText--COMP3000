@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace ClearText.Dialogs;
 
-public partial class PageNameDialogView : UserControl
+public partial class StringDialogView : UserControl
 {
-    public PageNameDialogView()
+    public StringDialogView()
     {
         InitializeComponent();
     }

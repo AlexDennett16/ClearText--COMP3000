@@ -9,12 +9,19 @@ using ClearText.Interfaces;
 
 namespace ClearText.Services;
 
-public class GrammarService(IPathService pathService) : IGrammarService
+public class GrammarService : IGrammarService
 {
-    private readonly string _pythonPath = pathService.LoadPythonFilePath().PythonExe;
-    private readonly string _workingDirectory = pathService.LoadPythonFilePath().WorkingDirectory;
+    private readonly string _pythonPath;
+    private readonly string _workingDirectory;
     private Process? _pythonProcess;
     private readonly SemaphoreSlim _lock = new(1, 1);
+
+    public GrammarService(IPathService pathService)
+    {
+        var pythonInfo = pathService.LoadPythonFilePath();
+        _pythonPath = pythonInfo.PythonExe;
+        _workingDirectory = pythonInfo.WorkingDirectory;
+    }
 
 
     public async Task StartupAsync()
@@ -25,9 +32,7 @@ public class GrammarService(IPathService pathService) : IGrammarService
     private void EnsurePythonPersists()
     {
         if (_pythonProcess is { HasExited: false })
-        {
-            return; //TODO setup python error
-        }
+            return;
 
         if (!File.Exists(_pythonPath))
             throw new FileNotFoundException("Python executable not found", _pythonPath);
@@ -97,7 +102,10 @@ public class GrammarService(IPathService pathService) : IGrammarService
 
     public void KillPythonProcess()
     {
-        if (_pythonProcess is not { HasExited: false }) return;
+        if (_pythonProcess is not { HasExited: false })
+            return;
+
+        _pythonProcess.StandardInput.Close();
         _pythonProcess.Kill(true);
         _pythonProcess.Dispose();
         _pythonProcess = null;

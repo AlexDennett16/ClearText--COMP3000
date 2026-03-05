@@ -1,4 +1,5 @@
-﻿using System.Reactive;
+﻿using System.Linq;
+using System.Reactive;
 using ClearText.BaseTypes.BaseViewModels;
 using ClearText.Interfaces;
 using ReactiveUI;
@@ -8,10 +9,10 @@ namespace ClearText.Dialogs;
 public class StringDialogViewModel : DialogViewModelBase<string?>
 {
   private string _stringValue;
-  private readonly string _errorMessage;
   private readonly IToastService _toastService;
+  private readonly IPathService _pathService;
 
-  public string stringValue
+  public string StringValue
   {
     get => _stringValue;
     set => this.RaiseAndSetIfChanged(ref _stringValue, value);
@@ -20,12 +21,13 @@ public class StringDialogViewModel : DialogViewModelBase<string?>
   public ReactiveCommand<Unit, Unit> Confirm { get; }
   public ReactiveCommand<Unit, Unit> Cancel { get; }
 
-  public StringDialogViewModel(IToastService toastService,
-    string errorMessage = "Please type something", string startingValue = "")
+  public StringDialogViewModel(IToastService toastService, IPathService pathService, string startingValue = "")
   {
     _toastService = toastService;
-    _errorMessage = errorMessage;
+    _pathService = pathService;
     _stringValue = startingValue;
+
+    Title = "Enter a value";
 
     Confirm = ReactiveCommand.Create(ExecuteConfirm);
     Cancel = ReactiveCommand.Create(() => Close?.Invoke(null));
@@ -33,13 +35,24 @@ public class StringDialogViewModel : DialogViewModelBase<string?>
 
   private void ExecuteConfirm()
   {
-    if (!string.IsNullOrWhiteSpace(stringValue))
+    if (InputIsNotValid())
     {
-      Close?.Invoke(stringValue);
+      _toastService.CreateAndShowErrorToast("Input must not contain illegal characters and cannot be empty.");
+    }
+    else if (_pathService.GetExistingPageNames().Contains(StringValue))
+    {
+      _toastService.CreateAndShowErrorToast("A page with this name already exists. Please choose a different name.");
     }
     else
     {
-      _toastService.CreateAndShowErrorToast(_errorMessage);
+      Close?.Invoke(StringValue);
     }
+  }
+
+  private bool InputIsNotValid()
+  {
+    var illegalChars = System.IO.Path.GetInvalidFileNameChars();
+    return string.IsNullOrWhiteSpace(StringValue) ||
+           StringValue.Any(illegalChars.Contains); //TODO switch statement this?
   }
 }

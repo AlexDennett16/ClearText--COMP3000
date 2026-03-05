@@ -137,6 +137,11 @@ public class PathService : IPathService
         Directory.CreateDirectory(configDir);
         return Path.Combine(configDir, "pages.json");
     }
+
+    public List<string?> GetExistingPageNames()
+    {
+        return _cachedPaths.Select(Path.GetFileNameWithoutExtension).ToList();
+    }
 }
 
 public class PageConfig

@@ -64,7 +64,9 @@ public class PageSelectionViewModel : ViewModelBase
         try
         {
             var oldFileName = System.IO.Path.GetFileNameWithoutExtension(oldPath);
-            var newDocName = await CallDialog("New document name required.", oldFileName);
+            var newDocName = await CallDialog(oldFileName);
+            if (string.IsNullOrEmpty(newDocName) || newDocName == oldFileName)
+                return;
 
 
             var directory = System.IO.Path.GetDirectoryName(oldPath)!;
@@ -72,7 +74,7 @@ public class PageSelectionViewModel : ViewModelBase
 
             var newPath = directory + "\\" + newDocName + extension;
             _storage.RenamePage(oldPath, newPath);
-            _toastService.CreateAndShowInfoToast("Document renamed.");
+            _toastService.CreateAndShowInfoToast("Document renamed to:" + newDocName);
             RefreshPages();
         }
         catch (Exception e)
@@ -91,8 +93,8 @@ public class PageSelectionViewModel : ViewModelBase
     {
         try
         {
-            var pageName = await CallDialog("Document name required.");
-            if (string.IsNullOrWhiteSpace(pageName))
+            var pageName = await CallDialog();
+            if (string.IsNullOrEmpty(pageName))
                 return;
 
             var newPath = _storage.CreatePageFilePath(pageName);
@@ -106,10 +108,10 @@ public class PageSelectionViewModel : ViewModelBase
         }
     }
 
-    private async Task<string> CallDialog(string errorMessage, string startingValue = "")
+    private async Task<string> CallDialog(string startingValue = "")
     {
-        var dialog = new StringDialogViewModel(_toastService, errorMessage: errorMessage, startingValue: startingValue);
+        var dialog = new StringDialogViewModel(_toastService, _storage, startingValue: startingValue);
         var result = await _dialogService.ShowAsync(dialog);
-        return result ?? throw new InvalidOperationException("No page name provided.");
+        return result ?? string.Empty;
     }
 }

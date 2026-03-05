@@ -19,12 +19,12 @@ public class GrammarService(IPathService pathService) : IGrammarService
 
     public async Task StartupAsync()
     {
-        await Task.Run(() => EnsurePythonPersists());
+        await Task.Run(EnsurePythonPersists);
     }
 
     private void EnsurePythonPersists()
     {
-        if (_pythonProcess != null && !_pythonProcess.HasExited)
+        if (_pythonProcess is { HasExited: false })
         {
             return; //TODO setup python error
         }
@@ -44,9 +44,12 @@ public class GrammarService(IPathService pathService) : IGrammarService
             RedirectStandardError = true,
             RedirectStandardInput = true,
             UseShellExecute = false,
-            CreateNoWindow = true
+            CreateNoWindow = true,
+            EnvironmentVariables =
+            {
+                ["CREATE_PROCESS_GROUP"] = "1"
+            }
         };
-        psi.EnvironmentVariables["CREATE_PROCESS_GROUP"] = "1";
 
         _pythonProcess = Process.Start(psi);
     }
@@ -78,7 +81,6 @@ public class GrammarService(IPathService pathService) : IGrammarService
                     Text = "",
                     Tokens = []
                 };
-                ;
             }
 
             Console.WriteLine("Python output: " + output);
@@ -95,11 +97,9 @@ public class GrammarService(IPathService pathService) : IGrammarService
 
     public void KillPythonProcess()
     {
-        if (_pythonProcess != null && !_pythonProcess.HasExited)
-        {
-            _pythonProcess.Kill(true);
-            _pythonProcess.Dispose();
-            _pythonProcess = null;
-        }
+        if (_pythonProcess is not { HasExited: false }) return;
+        _pythonProcess.Kill(true);
+        _pythonProcess.Dispose();
+        _pythonProcess = null;
     }
 }

@@ -59,19 +59,26 @@ public class PageSelectionViewModel : ViewModelBase
             Pages.Add(CreateVM(p));
     }
 
-    private async Task RenamePage(string oldPath)
+    private async void RenamePage(string oldPath)
     {
-        var oldFileName = System.IO.Path.GetFileNameWithoutExtension(oldPath);
-        var newDocName = await CallDialog("New document name required.", oldFileName);
+        try
+        {
+            var oldFileName = System.IO.Path.GetFileNameWithoutExtension(oldPath);
+            var newDocName = await CallDialog("New document name required.", oldFileName);
 
 
-        var directory = System.IO.Path.GetDirectoryName(oldPath)!;
-        var extension = System.IO.Path.GetExtension(oldPath);
+            var directory = System.IO.Path.GetDirectoryName(oldPath)!;
+            var extension = System.IO.Path.GetExtension(oldPath);
 
-        var newPath = directory + "\\" + newDocName + extension;
-        _storage.RenamePage(oldPath, newPath);
-        _toastService.CreateAndShowInfoToast("Document renamed.");
-        RefreshPages();
+            var newPath = directory + "\\" + newDocName + extension;
+            _storage.RenamePage(oldPath, newPath);
+            _toastService.CreateAndShowInfoToast("Document renamed.");
+            RefreshPages();
+        }
+        catch (Exception e)
+        {
+            _toastService.CreateAndShowErrorToast("Error renaming document: " + e.Message);
+        }
     }
 
     private void DeletePage(string path)
@@ -82,14 +89,21 @@ public class PageSelectionViewModel : ViewModelBase
 
     private async void CreateNewDocument()
     {
-        var pageName = await CallDialog("Document name required.");
-        if (string.IsNullOrWhiteSpace(pageName))
-            return;
+        try
+        {
+            var pageName = await CallDialog("Document name required.");
+            if (string.IsNullOrWhiteSpace(pageName))
+                return;
 
-        var newPath = _storage.CreatePageFilePath(pageName);
-        _storage.AddPage(newPath);
+            var newPath = _storage.CreatePageFilePath(pageName);
+            _storage.AddPage(newPath);
 
-        _toastService.CreateAndShowInfoToast($"Document '{pageName}' created.");
+            _toastService.CreateAndShowInfoToast($"Document '{pageName}' created.");
+        }
+        catch (Exception e)
+        {
+            _toastService.CreateAndShowErrorToast("Error creating document: " + e.Message);
+        }
     }
 
     private async Task<string> CallDialog(string errorMessage, string startingValue = "")

@@ -39,6 +39,7 @@ public class TextEditorViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> AnalyseGrammarCommand { get; }
 
     private IReadOnlyList<ClearTextError>? _errors = [];
+
     public IReadOnlyList<ClearTextError>? Errors
     {
         get => _errors;
@@ -133,34 +134,40 @@ public class TextEditorViewModel : ViewModelBase
 
     private async void AnalyseGrammarAction()
     {
-        if (_isGrammarChecking)
-        {
-            _toastService.CreateAndShowInfoToast("Grammar analysis already running.");
-            return;
-        }
-
         try
         {
-            _isGrammarChecking = true;
-            _toastService.CreateAndShowInfoToast("Analyzing grammar...");
+            if (_isGrammarChecking)
+            {
+                _toastService.CreateAndShowInfoToast("Grammar analysis already running.");
+                return;
+            }
 
-            var sw = Stopwatch.StartNew();
-            var payload = JsonSerializer.Serialize(new { text = DocumentText });
-            var response = await _grammarService.CheckGrammarAsync(payload);
-            sw.Stop();
+            try
+            {
+                _isGrammarChecking = true;
+                _toastService.CreateAndShowInfoToast("Analyzing grammar...");
 
-            Errors = response?.Errors;
-            _toastService.CreateAndShowInfoToast($"Grammar analysis took {sw.ElapsedMilliseconds}ms");
+                var sw = Stopwatch.StartNew();
+                var payload = JsonSerializer.Serialize(new { text = DocumentText });
+                var response = await _grammarService.CheckGrammarAsync(payload);
+                sw.Stop();
+
+                Errors = response?.Errors;
+                _toastService.CreateAndShowInfoToast($"Grammar analysis took {sw.ElapsedMilliseconds}ms");
+            }
+            catch (Exception e)
+            {
+                _toastService.CreateAndShowErrorToast("Grammar analysis failed. with error " + e.Message);
+                throw;
+            }
+            finally
+            {
+                _isGrammarChecking = false;
+            }
         }
         catch (Exception e)
         {
-            _toastService.CreateAndShowErrorToast("Grammar analysis failed.");
-            throw;
-        }
-        finally
-        {
-            _isGrammarChecking = false;
+            _toastService.CreateAndShowErrorToast("An error occurred during grammar analysis: " + e.Message);
         }
     }
-
 }

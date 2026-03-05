@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Reactive.Disposables;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -35,7 +33,10 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
                 .DisposeWith(disposables);
 
             this.WhenAnyValue(v => v.ViewModel!.Errors)
-                .Subscribe(_ => LoadSquigglies(ViewModel))
+                .Subscribe(_ =>
+                {
+                    if (ViewModel != null) LoadSquigglies(ViewModel);
+                })
                 .DisposeWith(disposables);
         });
     }
@@ -81,33 +82,35 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         // Only do the expansion for duplicate punctuation errors
 
 
-        int start = _activeMarker.StartOffset;
-        int end = start + _activeMarker.Length;
-
-
-        // Expand left
-        while (start > 0)
+        if (_activeMarker != null)
         {
-            char c = Editor.Document.GetCharAt(start - 1);
-            if (!char.IsPunctuation(c))
-                break;
-            start--;
+            var start = _activeMarker.StartOffset;
+            var end = start + _activeMarker.Length;
+
+
+            // Expand left
+            while (start > 0)
+            {
+                char c = Editor.Document.GetCharAt(start - 1);
+                if (!char.IsPunctuation(c))
+                    break;
+                start--;
+            }
+
+            // Expand right
+            while (end < Editor.Document.TextLength)
+            {
+                char c = Editor.Document.GetCharAt(end);
+                if (!char.IsPunctuation(c))
+                    break;
+                end++;
+            }
+
+            var length = end - start;
+
+            Editor.Document.Replace(start, length, suggestion);
+            RemoveMarkersInRange(start, end);
         }
-
-        // Expand right
-        while (end < Editor.Document.TextLength)
-        {
-            char c = Editor.Document.GetCharAt(end);
-            if (!char.IsPunctuation(c))
-                break;
-            end++;
-        }
-
-        int length = end - start;
-
-        Editor.Document.Replace(start, length, suggestion);
-        RemoveMarkersInRange(start, end);
-
     }
 
     private void RemoveMarkersInRange(int start, int end)
@@ -116,10 +119,10 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
 
         foreach (var marker in markers)
         {
-            int mStart = marker.StartOffset;
-            int mEnd = marker.StartOffset + marker.Length;
+            var mStart = marker.StartOffset;
+            var mEnd = marker.StartOffset + marker.Length;
 
-            bool overlaps =
+            var overlaps =
                 !(mEnd <= start || mStart >= end); // intervals overlap
 
             if (overlaps)
@@ -132,7 +135,8 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         if (ViewModel == null || _activeMarker == null)
             return;
 
-        if (_activeMarker.Error.Suggestions is not List<string> suggestions || suggestions[0] == ClearTextErrorConstants.NoSuggestions)
+        if (_activeMarker.Error.Suggestions is not { } suggestions ||
+            suggestions[0] == ClearTextErrorConstants.NoSuggestions)
             return;
 
 
@@ -158,7 +162,7 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
 
     private void SuggestionButtonOnClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Content is string suggestion)
+        if (sender is Button { Content: string suggestion })
         {
             ApplySuggestion(suggestion);
         }

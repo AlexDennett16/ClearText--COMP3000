@@ -145,7 +145,9 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         if (ViewModel == null || _activeMarker == null)
             return;
 
-        if (_activeMarker.Error.Suggestions is not { } suggestions ||
+        var suggestions = _activeMarker.Error.Suggestions;
+
+        if (suggestions is null || suggestions.Count == 0 ||
             suggestions[0] == ClearTextErrorConstants.NoSuggestions)
             return;
 

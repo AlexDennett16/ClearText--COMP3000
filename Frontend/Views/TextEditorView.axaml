@@ -30,8 +30,6 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-
-
     <DockPanel>
         <StackPanel
             Margin="10"
@@ -40,9 +38,7 @@
             Orientation="Horizontal">
 
             <Button Command="{Binding ReturnCommand}" Content="Back" />
-
             <Button Command="{Binding SaveCommand}" Content="Save" />
-
             <Button Command="{Binding AnalyseGrammarCommand}" Content="Analyse Grammar" />
 
         </StackPanel>

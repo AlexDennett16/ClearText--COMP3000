@@ -29,13 +29,25 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
 
         this.WhenActivated(disposables =>
         {
-            this.Bind(ViewModel, vm => vm.DocumentText, v => v.Editor.Text)
+            this.WhenAnyValue(v => v.ViewModel!.DocumentText)
+                .Subscribe(text =>
+                {
+                    if (text != Editor.Document.Text)
+                        Editor.Document.Text = text;
+                })
                 .DisposeWith(disposables);
+
+            Editor.Document.TextChanged += (_, _) =>
+            {
+                if (ViewModel != null)
+                    ViewModel.DocumentText = Editor.Document.Text;
+            };
 
             this.WhenAnyValue(v => v.ViewModel!.Errors)
                 .Subscribe(_ =>
                 {
-                    if (ViewModel != null) LoadSquigglies(ViewModel);
+                    if (ViewModel != null)
+                        LoadSquigglies(ViewModel);
                 })
                 .DisposeWith(disposables);
         });
@@ -87,7 +99,6 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
             var start = _activeMarker.StartOffset;
             var end = start + _activeMarker.Length;
 
-
             // Expand left
             while (start > 0)
             {
@@ -122,8 +133,7 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
             var mStart = marker.StartOffset;
             var mEnd = marker.StartOffset + marker.Length;
 
-            var overlaps =
-                !(mEnd <= start || mStart >= end); // intervals overlap
+            var overlaps = !(mEnd <= start || mStart >= end);
 
             if (overlaps)
                 _markerService.Remove(marker);
@@ -138,7 +148,6 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         if (_activeMarker.Error.Suggestions is not { } suggestions ||
             suggestions[0] == ClearTextErrorConstants.NoSuggestions)
             return;
-
 
         if (_activeMarker.Error.Type == ClearTextErrorConstants.DuplicatePunctuation)
         {
@@ -171,7 +180,7 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
     private void LoadSquigglies(TextEditorViewModel vm)
     {
         _markerService.ClearMarkers();
-        _markerService.LoadSquigglies(Editor.Text, vm.Errors ?? []);
+        _markerService.LoadSquigglies(Editor.Document.Text, vm.Errors ?? []);
         Editor.TextArea.TextView.Redraw();
     }
 }

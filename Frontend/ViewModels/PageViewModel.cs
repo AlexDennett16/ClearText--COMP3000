@@ -25,7 +25,7 @@ public class PageViewModel : ViewModelBase
         Action deleteCallback)
 
     {
-        FilePath = filePath;
+        _filePath = filePath;
         OpenEditorCommand = ReactiveCommand.Create(() => openEditorCallback(FilePath));
         RenameCommand = ReactiveCommand.Create(renameCallback);
         DeleteCommand = ReactiveCommand.Create(deleteCallback);

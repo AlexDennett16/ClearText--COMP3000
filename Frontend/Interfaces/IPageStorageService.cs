@@ -1,18 +1,20 @@
+using System;
 using System.Collections.Generic;
 
 namespace ClearText.Interfaces;
 
 public interface IPathService
 {
-    List<string> LoadPageFilePaths();
+  IReadOnlyList<string> PageFilePaths { get; }
 
-    void SavePageFilePaths(IEnumerable<string> paths);
+  event Action? PagePathsChanged;
+  string CreatePageFilePath(string pageName);
 
-    void DeletePageFile(string path, IEnumerable<string> paths);
-    void ChangePageFilePath(string oldPath, string newPath, IEnumerable<string> paths);
+  void AddPage(string path);
 
-    string CreatePageFilePath(string pageName);
+  void DeletePage(string path);
 
-    (string PythonExe, string WorkingDirectory)
-        LoadPythonFilePath(); //TODO return type is horrific, refactor this when implementing properly
+  void RenamePage(string oldPath, string newPath);
+
+  (string PythonExe, string WorkingDirectory) LoadPythonFilePath();
 }

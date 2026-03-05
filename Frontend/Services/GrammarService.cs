@@ -46,7 +46,6 @@ public class GrammarService(IPathService pathService) : IGrammarService
             UseShellExecute = false,
             CreateNoWindow = true
         };
-
         psi.EnvironmentVariables["CREATE_PROCESS_GROUP"] = "1";
 
         _pythonProcess = Process.Start(psi);
@@ -71,17 +70,20 @@ public class GrammarService(IPathService pathService) : IGrammarService
             //Covers the null or empty cases, which likely indicates a python error
             if (string.IsNullOrWhiteSpace(output))
             {
-                Console.WriteLine("Python error, Empty or Null output: " + await _pythonProcess.StandardError.ReadToEndAsync());
+                Console.WriteLine("Python error, Empty or Null output: " +
+                                  await _pythonProcess.StandardError.ReadToEndAsync());
                 return new ClearTextResult
                 {
                     Errors = [],
                     Text = "",
                     Tokens = []
-                }; ;
+                };
+                ;
             }
 
             Console.WriteLine("Python output: " + output);
-            var result = JsonSerializer.Deserialize<ClearTextResult>(output, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var result = JsonSerializer.Deserialize<ClearTextResult>(output,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             Console.WriteLine("Deserialized result: " + result);
             return result;
         }

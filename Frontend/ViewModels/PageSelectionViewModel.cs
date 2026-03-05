@@ -11,12 +11,6 @@ namespace ClearText.ViewModels;
 
 public class PageSelectionViewModel : ViewModelBase
 {
-    private readonly Action<string> _openEditor;
-    private readonly IPathService _storage;
-
-    private readonly IDialogService _dialogService;
-    private readonly IToastService _toastService;
-
     private double _wrapWidth;
 
     public double WrapWidth
@@ -25,12 +19,15 @@ public class PageSelectionViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _wrapWidth, value);
     }
 
+    private readonly Action<string> _openEditor;
+    private readonly IPathService _storage;
+    private readonly IDialogService _dialogService;
+    private readonly IToastService _toastService;
+
     public ObservableCollection<PageViewModel> Pages { get; }
 
     public ReactiveCommand<Unit, Unit> CreateNewDocumentCommand { get; }
-
     public Interaction<Unit, string?> RequestNewPageName { get; }
-
 
     public PageSelectionViewModel(Action<string> openEditorCallback, IAppServices services)
     {
@@ -41,64 +38,56 @@ public class PageSelectionViewModel : ViewModelBase
 
         RequestNewPageName = new Interaction<Unit, string?>();
 
-        var paths = _storage.LoadPageFilePaths();
         Pages = new ObservableCollection<PageViewModel>(
-            paths.Select(p => new PageViewModel(p, _openEditor, RenamePage(p), DeletePage(p))));
+            _storage.PageFilePaths.Select(CreateVM));
+
+        _storage.PagePathsChanged += RefreshPages;
 
         CreateNewDocumentCommand = ReactiveCommand.Create(CreateNewDocument);
     }
 
-
-    private Action RenamePage(string filePath)
+    private PageViewModel CreateVM(string path)
     {
-        return () =>
-        {
-            _storage.ChangePageFilePath(filePath, filePath + "_renamed",
-                Pages.Select(p => p.FilePath).ToList()); //Implement acc renaming functionality
-            _toastService.CreateAndShowInfoToast(
-                $"Document '{System.IO.Path.GetFileNameWithoutExtension(filePath)}' renamed.");
-        };
+        return new PageViewModel(path, _openEditor, () => RenamePage(path), () => DeletePage(path));
     }
 
-    private Action DeletePage(string filePath)
+    private void RefreshPages()
     {
-        return () =>
-        {
-            Pages.Remove(Pages.First(p => p.FilePath == filePath));
-            _storage.DeletePageFile(filePath, Pages.Select(p => p.FilePath).ToList());
-            _toastService.CreateAndShowInfoToast(
-                $"Document '{System.IO.Path.GetFileNameWithoutExtension(filePath)}' deleted.");
-        };
+        Pages.Clear();
+        foreach (var p in _storage.PageFilePaths)
+            Pages.Add(CreateVM(p));
+    }
+
+    private void RenamePage(string oldPath)
+    {
+        var directory = System.IO.Path.GetDirectoryName(oldPath)!;
+        var nameWithoutExt =
+            System.IO.Path.GetFileNameWithoutExtension(oldPath) + "_renamed"; // TODO real rename dialog
+        var extension = System.IO.Path.GetExtension(oldPath);
+
+        var newPath = directory + "\\" + nameWithoutExt + extension;
+        _storage.RenamePage(oldPath, newPath);
+        _toastService.CreateAndShowInfoToast("Document renamed.");
+        RefreshPages();
+    }
+
+    private void DeletePage(string path)
+    {
+        _storage.DeletePage(path);
+        _toastService.CreateAndShowInfoToast("Document deleted.");
     }
 
     private async void CreateNewDocument()
     {
-        try
-        {
-            var dialog = new PageNameDialogViewModel(_toastService);
-            var pageName = await _dialogService.ShowAsync(dialog);
+        var dialog = new PageNameDialogViewModel(_toastService);
+        var pageName = await _dialogService.ShowAsync(dialog);
 
-            if (pageName is null)
-                return;
+        if (pageName is null)
+            return;
 
+        var newPath = _storage.CreatePageFilePath(pageName);
+        _storage.AddPage(newPath);
 
-            // 4. Build the new file path
-            var newPath = _storage.CreatePageFilePath(pageName);
-
-            // 5. Add to UI list
-            Pages.Insert(0, new PageViewModel(newPath, _openEditor, RenamePage(newPath), DeletePage(newPath)));
-
-            // 6. Persist
-            _storage.SavePageFilePaths(Pages.Select(p => p.FilePath).ToList());
-
-            _toastService.CreateAndShowInfoToast($"Document '{pageName}' created successfully.");
-
-            // 7. Optionally open the editor
-            //_openEditor(newPath);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error creating new document: " + ex.Message);
-        }
+        _toastService.CreateAndShowInfoToast($"Document '{pageName}' created.");
     }
 }

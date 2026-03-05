@@ -12,98 +12,104 @@ namespace ClearText.Services;
 
 public class PathService : IPathService
 {
-    private readonly string PageFilePathStoragePath = DeterminePageStoragePath(); //Cant be const cant it?
+    private readonly string _storagePath = DeterminePageStoragePath();
+    private readonly List<string> _cachedPaths;
 
-    public List<string> LoadPageFilePaths()
+    public event Action? PagePathsChanged;
+
+    public IReadOnlyList<string> PageFilePaths => _cachedPaths;
+
+    public PathService()
     {
-        if (!File.Exists(PageFilePathStoragePath))
+        _cachedPaths = LoadOrCreate();
+    }
+
+    private List<string> LoadOrCreate()
+    {
+        if (!File.Exists(_storagePath))
         {
-            var defaultFilePathStoragePath = new PageConfig
+            var defaultConfig = new PageConfig
             {
                 Pages =
                 [
-                    "C:\\Users\\alex\\Downloads\\Test.docx" //TODO Change to Nothing once testing over
+                    "C:\\Users\\alex\\Downloads\\Test.docx" // TODO remove after testing
                 ]
             };
 
-            var defaultJSON = JsonSerializer.Serialize(defaultFilePathStoragePath,
-                new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(PageFilePathStoragePath, defaultJSON);
-            return defaultFilePathStoragePath.Pages;
+            SaveConfig(defaultConfig);
+            return defaultConfig.Pages;
         }
 
-        var json = File.ReadAllText(PageFilePathStoragePath);
+        var json = File.ReadAllText(_storagePath);
         var config = JsonSerializer.Deserialize<PageConfig>(json);
         return config?.Pages ?? [];
     }
 
-    public void DeletePageFile(string path, IEnumerable<string> paths)
+    private void SaveConfig(PageConfig config)
+    {
+        var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(_storagePath, json);
+    }
+
+    private void Persist()
+    {
+        SaveConfig(new PageConfig { Pages = _cachedPaths.ToList() });
+        PagePathsChanged?.Invoke();
+    }
+
+    public void AddPage(string path)
+    {
+        _cachedPaths.Insert(0, path);
+        Persist();
+    }
+
+    public void DeletePage(string path)
     {
         if (File.Exists(path))
             File.Delete(path);
-        SavePageFilePaths(paths.Where(p => p != path));
+
+        _cachedPaths.Remove(path);
+        Persist();
     }
 
-    public void SavePageFilePaths(IEnumerable<string> paths)
+    public void RenamePage(string oldPath, string newPath)
     {
-        var config = new PageConfig { Pages = paths.ToList() };
-        var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(PageFilePathStoragePath, json);
-    }
+        if (File.Exists(oldPath))
+            File.Move(oldPath, newPath);
 
-    private static string DeterminePageStoragePath()
-    {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var configDir = Path.Combine(appData, "ClearText");
-        Directory.CreateDirectory(configDir);
-        return Path.Combine(configDir, "pages.json");
+        var index = _cachedPaths.IndexOf(oldPath);
+        if (index >= 0)
+            _cachedPaths[index] = newPath;
+
+        Persist();
     }
 
     public string CreatePageFilePath(string pageName)
     {
-        var fullPath = Path.Combine("C:\\Users\\alex\\Documents", pageName + ".docx"); //TODO Add file selection dialog
+        var fullPath = Path.Combine("C:\\Users\\alex\\Documents", pageName + ".docx");
 
-        using var doc = WordprocessingDocument.Create(
-            fullPath,
-            WordprocessingDocumentType.Document);
-        MainDocumentPart mainPart = doc.AddMainDocumentPart();
-        mainPart.Document = new Document();
-        mainPart.Document.AppendChild(new Body());
-
+        using var doc = WordprocessingDocument.Create(fullPath, WordprocessingDocumentType.Document);
+        var mainPart = doc.AddMainDocumentPart();
+        mainPart.Document = new Document(new Body());
         mainPart.Document.Save();
 
         return fullPath;
     }
 
-    public void ChangePageFilePath(string oldPath, string newPath, IEnumerable<string> paths)
-    {
-        if (File.Exists(oldPath))
-            File.Move(oldPath, newPath); //TODO handle all sort of failure cases here
-        SavePageFilePaths(paths.Select(p => p == oldPath ? newPath : p));
-    }
 
     public (string PythonExe, string WorkingDirectory) LoadPythonFilePath()
     {
-        // 1. Find project root then main ClearText folder
         var baseDir = AppContext.BaseDirectory;
         var projectRoot = FindDirectoryUpwards(baseDir, "ClearText--COMP3000")
-                          ?? throw new DirectoryNotFoundException(
-                              "Could not locate project root 'ClearText--COMP3000'.");
+                          ?? throw new DirectoryNotFoundException("Could not locate project root.");
 
-        // 2. Build expected venv python path
         var pythonPath = Path.Combine(projectRoot, ".venv", "Scripts", "python.exe");
-
         if (!File.Exists(pythonPath))
-            throw new FileNotFoundException(
-                $"Python executable not found at: {pythonPath}\n" +
-                "Ensure your venv is created and accessible.");
+            throw new FileNotFoundException($"Python executable not found at: {pythonPath}");
 
-        // 3. Backend folder for working directory
         var backendDir = Path.Combine(projectRoot, "Backend");
-
         if (!Directory.Exists(backendDir))
-            throw new DirectoryNotFoundException(
-                $"Backend directory not found at: {backendDir}");
+            throw new DirectoryNotFoundException($"Backend directory not found at: {backendDir}");
 
         return (pythonPath, backendDir);
     }
@@ -122,6 +128,14 @@ public class PathService : IPathService
         }
 
         return null;
+    }
+
+    private static string DeterminePageStoragePath()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var configDir = Path.Combine(appData, "ClearText");
+        Directory.CreateDirectory(configDir);
+        return Path.Combine(configDir, "pages.json");
     }
 }
 

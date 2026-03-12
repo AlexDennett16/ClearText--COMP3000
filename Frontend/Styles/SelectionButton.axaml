@@ -1,0 +1,11 @@
+<Styles xmlns="https://github.com/avaloniaui">
+  <Style Selector="Button.selection-button">
+    <Setter Property="Width" Value="200" />
+    <Setter Property="Height" Value="100" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Background" Value="#2A2A2A" />
+    <Setter Property="Padding" Value="10" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+</Styles>

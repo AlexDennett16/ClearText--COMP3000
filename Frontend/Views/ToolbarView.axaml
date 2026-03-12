@@ -11,12 +11,11 @@
     mc:Ignorable="d">
 
 
-  <StackPanel Background="{DynamicResource DefaultTabBackgroundBrush}" Orientation="Horizontal">
-    <Image Source="../Resources/ClearTextLogo.png" />
-    <TextBlock
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center"
-        Text="ToolbarView" />
-  </StackPanel>
+    <StackPanel Background="{DynamicResource DefaultTabBackgroundBrush}" Orientation="Horizontal">
+        <Image Source="../Resources/ClearTextLogo.png" />
+        <TextBlock
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center" />
+    </StackPanel>
 
 </UserControl>

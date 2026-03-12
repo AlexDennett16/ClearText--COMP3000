@@ -14,7 +14,7 @@
   <Grid Margin="30" RowDefinitions="Auto, Auto, *">
 
     <TextBlock Grid.Row="0"
-               Text="Welcome to ClearText!"
+               Text="Welcome to ClearText! Open a document to get started!"
                FontSize="40"
                VerticalAlignment="Center" />
     <StackPanel

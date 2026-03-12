@@ -25,6 +25,7 @@ public class TextEditorViewModel : ViewModelBase
     private readonly List<WordRun> _originalRuns = [];
     private readonly IToastService _toastService;
     private readonly IGrammarService _grammarService;
+    private readonly IPathService _storageService;
     private string _documentText = string.Empty;
     private bool _isGrammarChecking;
 
@@ -51,6 +52,7 @@ public class TextEditorViewModel : ViewModelBase
         _filePath = filePath;
         _toastService = appServices.ToastService;
         _grammarService = appServices.GrammarService;
+        _storageService = appServices.PathService;
 
         DocumentText = LoadDocxText(filePath);
 
@@ -106,7 +108,7 @@ public class TextEditorViewModel : ViewModelBase
         }
 
         doc.MainDocumentPart.Document.Save();
-
+        _storageService.TouchPage(_filePath);
         _toastService.CreateAndShowInfoToast("Document saved successfully.");
     }
 
@@ -157,7 +159,7 @@ public class TextEditorViewModel : ViewModelBase
             }
             catch (Exception e)
             {
-                _toastService.CreateAndShowErrorToast("Grammar analysis failed. with error " + e.Message);
+                _toastService.CreateAndShowErrorToast("Grammar analysis failed, with error: " + e.Message);
                 throw;
             }
             finally

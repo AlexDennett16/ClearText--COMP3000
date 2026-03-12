@@ -96,6 +96,14 @@ public class PathService : IPathService
         return fullPath;
     }
 
+    public void TouchPage(string path)
+    {
+        _cachedPaths.Remove(path);
+        _cachedPaths.Insert(0, path);
+
+        Persist();
+    }
+
 
     public (string PythonExe, string WorkingDirectory) LoadPythonFilePath()
     {

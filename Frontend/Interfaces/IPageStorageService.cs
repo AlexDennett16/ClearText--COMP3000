@@ -16,6 +16,8 @@ public interface IPathService
 
   void RenamePage(string oldPath, string newPath);
 
+  void TouchPage(string path);
+
   List<string?> GetExistingPageNames();
 
   (string PythonExe, string WorkingDirectory) LoadPythonFilePath();

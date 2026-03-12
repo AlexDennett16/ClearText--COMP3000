@@ -74,7 +74,7 @@ public class PageSelectionViewModel : ViewModelBase
 
             var newPath = directory + "\\" + newDocName + extension;
             _storage.RenamePage(oldPath, newPath);
-            _toastService.CreateAndShowInfoToast("Document renamed to:" + newDocName);
+            _toastService.CreateAndShowInfoToast("Document renamed to: " + newDocName);
             RefreshPages();
         }
         catch (Exception e)

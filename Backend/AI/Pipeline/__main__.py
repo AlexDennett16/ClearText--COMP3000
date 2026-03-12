@@ -5,14 +5,14 @@ from AI.Pipeline.pipeline import grammar_pipeline
 
 def read_csharp_json():
     for line in sys.stdin:
-        text = line.strip()
-        if not text:
+        raw = line.strip()
+        if not raw:
             continue
 
-        result = grammar_pipeline(text)
+        data = json.loads(raw)
+        return data
 
-        print(json.dumps(result))
-        sys.stdout.flush()
+    return None
 
 
 if __name__ == "__main__":
@@ -20,8 +20,11 @@ if __name__ == "__main__":
         data = read_csharp_json()
         if data is None:
             continue
+
+        # Extract the actual text field
         text = data.get("text", "")
 
+        # Run grammar pipeline on the REAL text
         result = grammar_pipeline(text)
 
         # Send JSON back to C#

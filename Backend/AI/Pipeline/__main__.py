@@ -5,13 +5,8 @@ from AI.Pipeline.pipeline import grammar_pipeline
 
 def read_csharp_json():
     for line in sys.stdin:
-        raw = line.strip()
-        if not raw:
-            continue
-
-        data = json.loads(raw)
-        return data
-
+        if raw := line.strip():
+            return json.loads(raw)
     return None
 
 

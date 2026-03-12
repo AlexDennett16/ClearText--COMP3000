@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
@@ -79,24 +78,61 @@ namespace ClearText.Services
             return _markers.ToList();
         }
 
-
         internal void LoadSquigglies(string editorText, IReadOnlyList<ClearTextError> errors)
         {
-            var start = 0;
+            if (errors.Count == 0)
+                return;
+
+            // Split the editor text into tokens exactly like Python did
+            // (Python uses simple whitespace/punctuation tokenization)
+            var tokens = new List<string>();
+            var tokenOffsets = new List<int>();
+
+            var i = 0;
+
+            while (i < editorText.Length)
+            {
+                // Skip whitespace
+                if (char.IsWhiteSpace(editorText[i]))
+                {
+                    i++;
+                    continue;
+                }
+
+                var start = i;
+
+                // Consume letters/numbers
+                while (i < editorText.Length && char.IsLetterOrDigit(editorText[i]))
+                    i++;
+
+                // If we captured a word
+                if (start != i)
+                {
+                    var word = editorText[start..i];
+                    tokens.Add(word);
+                    tokenOffsets.Add(start);
+                    continue;
+                }
+
+                // Otherwise it's punctuation
+                tokens.Add(editorText[i].ToString());
+                tokenOffsets.Add(i);
+                i++;
+            }
+
+            // Now apply markers using Python's token index
             foreach (var error in errors)
             {
-                var search = error.Token;
-                while (true)
-                {
-                    var index = editorText.IndexOf(search, start, StringComparison.OrdinalIgnoreCase);
-                    if (index == -1)
-                        break;
+                if (error.Index < 0 || error.Index >= tokens.Count)
+                    continue;
 
-                    AddMarker(index, search.Length, Colors.Red, error);
-                    start = index + search.Length;
-                }
+                var charOffset = tokenOffsets[error.Index];
+                var length = tokens[error.Index].Length;
+
+                AddMarker(charOffset, length, Colors.Red, error);
             }
         }
+
 
         internal TextMarker? GetMarkerAtOffset(int offset)
         {
@@ -118,7 +154,6 @@ namespace ClearText.Services
                 Color = color;
                 Error = error;
             }
-
         }
     }
 }

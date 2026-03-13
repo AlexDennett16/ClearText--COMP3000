@@ -2,20 +2,46 @@
     x:Class="ClearText.Views.ToolbarView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:ClearText.ViewModels"
-    d:DesignHeight="1080"
-    d:DesignWidth="1920"
-    x:DataType="vm:ToolbarViewModel"
-    mc:Ignorable="d">
+    xmlns:vm="clr-namespace:ClearText.ViewModels.Toolbar"
+    x:DataType="vm:ToolbarViewModel">
+
+    <Grid Background="{DynamicResource DefaultTabBackgroundBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="6*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
 
-    <StackPanel Background="{DynamicResource DefaultTabBackgroundBrush}" Orientation="Horizontal">
-        <Image Source="../Resources/ClearTextLogo.png" />
-        <TextBlock
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center" />
-    </StackPanel>
+        <Image Grid.Column="0" Source="../Resources/ClearTextLogo.png" />
 
+        <ContentControl Grid.Column="1" Content="{Binding CurrentToolbar}">
+            <ContentControl.DataTemplates>
+
+                <DataTemplate DataType="vm:DashboardToolbarViewModel">
+                    <Grid Margin="100,20,20,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox
+                            Grid.Column="0"
+                            MaxWidth="800"
+                            MinWidth="100"
+                            Height="45"
+                            Watermark="Search documents..."
+                            VerticalContentAlignment="Center"
+                            HorizontalAlignment="Stretch" />
+                    </Grid>
+                </DataTemplate>
+
+                <DataTemplate DataType="vm:EditorToolbarViewModel">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBox Text="Lorem" />
+                    </StackPanel>
+                </DataTemplate>
+
+            </ContentControl.DataTemplates>
+        </ContentControl>
+    </Grid>
 </UserControl>

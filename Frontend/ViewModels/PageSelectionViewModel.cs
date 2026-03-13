@@ -47,6 +47,7 @@ public class PageSelectionViewModel : ViewModelBase
         CreateNewDocumentCommand = ReactiveCommand.Create(CreateNewDocument);
     }
 
+    // ReSharper disable once InconsistentNaming
     private PageViewModel CreateVM(string path)
     {
         return new PageViewModel(path, _openEditor, () => RenamePage(path), () => DeletePage(path));

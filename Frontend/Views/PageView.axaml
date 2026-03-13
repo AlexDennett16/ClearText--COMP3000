@@ -12,7 +12,12 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Rectangle Grid.Row="0" Fill="White" />
+            <Border Grid.Row="0" Background="White" Padding="8">
+                <TextBlock Text="{Binding PreviewText}"
+                           Foreground="#555"
+                           FontSize="16"
+                           TextWrapping="Wrap" />
+            </Border>
 
             <Grid Grid.Row="1" Background="Gray">
                 <Grid.ColumnDefinitions>

@@ -12,15 +12,16 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Image Grid.Column="0" Source="../Resources/ClearTextLogo.png" />
+        <Image Grid.Column="0" Source="../Resources/ClearTextLogo.png" VerticalAlignment="Center" />
 
         <ContentControl
             Grid.Column="1"
+            VerticalAlignment="Center"
             Content="{Binding CurrentToolbar}">
             <ContentControl.DataTemplates>
 
                 <DataTemplate DataType="vm:DashboardToolbarViewModel">
-                    <Grid Margin="100,20,20,0">
+                    <Grid Margin="100,20,20,20">
                         <TextBox
                             MaxWidth="800"
                             MinWidth="100"
@@ -28,6 +29,7 @@
                             Watermark="Search documents..."
                             VerticalContentAlignment="Center"
                             HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
                             Text="{Binding Parent.SearchText}" />
                     </Grid>
                 </DataTemplate>

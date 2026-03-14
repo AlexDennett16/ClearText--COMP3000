@@ -24,27 +24,34 @@
       Orientation="Horizontal"
       Spacing="100">
       <Button Classes="selection-button" Command="{Binding CreateNewDocumentCommand}">
-        <StackPanel Spacing="8">
-          <Path Data="M10 4 H14 V10 H20 V14 H14 V20 H10 V14 H4 V10 H10 Z"
-                Fill="White"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center" />
+        <StackPanel Spacing="8" HorizontalAlignment="Center">
+
+          <Grid Width="40" Height="40">
+            <Path Data="M10 4 H14 V10 H20 V14 H14 V20 H10 V14 H4 V10 H10 Z"
+                  Fill="White"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center" />
+          </Grid>
+
           <TextBlock Text="New Document"
                      HorizontalAlignment="Center"
-                     VerticalAlignment="Bottom"
                      FontSize="18" />
         </StackPanel>
       </Button>
 
+
       <Button Classes="selection-button">
-        <StackPanel Spacing="8"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-          <Path Data="M6 2 H14 L20 8 V22 H6 Z"
-                Width="40" Height="40" Fill="White" />
+        <StackPanel Spacing="8" HorizontalAlignment="Center">
+
+          <Grid Width="40" Height="40">
+            <Path Data="M6 2 H14 L20 8 V22 H6 Z"
+                  Fill="White"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center" />
+          </Grid>
+
           <TextBlock Text="New Template"
                      HorizontalAlignment="Center"
-                     VerticalAlignment="Bottom"
                      FontSize="18" />
         </StackPanel>
       </Button>

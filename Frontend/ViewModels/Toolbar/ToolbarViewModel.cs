@@ -7,12 +7,19 @@ namespace ClearText.ViewModels.Toolbar;
 
 public class ToolbarViewModel : ViewModelBase
 {
-    private ViewModelBase _currentToolbar = new DashboardToolbarViewModel();
+    private ViewModelBase? _currentToolbar;
+    private string? _searchText;
 
     public ViewModelBase CurrentToolbar
     {
-        get => _currentToolbar;
+        get => _currentToolbar!;
         set => this.RaiseAndSetIfChanged(ref _currentToolbar, value);
+    }
+
+    public string SearchText
+    {
+        get => _searchText!;
+        set => this.RaiseAndSetIfChanged(ref _searchText, value);
     }
 
 
@@ -29,9 +36,9 @@ public class ToolbarViewModel : ViewModelBase
     {
         CurrentToolbar = mode switch
         {
-            ToolbarMode.Dashboard => new DashboardToolbarViewModel(),
-            ToolbarMode.Editor => new EditorToolbarViewModel(),
-            _ => new DashboardToolbarViewModel()
+            ToolbarMode.Dashboard => new DashboardToolbarViewModel(this),
+            ToolbarMode.Editor => new EditorToolbarViewModel(this),
+            _ => new DashboardToolbarViewModel(this)
         };
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Reactive.Linq;
 using ClearText.BaseTypes.BaseViewModels;
 using ClearText.Enums;
 using ClearText.Interfaces;
@@ -34,7 +35,15 @@ public class MainWindowViewModel : ViewModelBase
         ToolbarMode = ToolbarMode.Dashboard;
         Toolbar = new ToolbarViewModel(this);
 
-        CurrentViewModel = new PageSelectionViewModel(OpenEditor, Services);
+
+        var pageSelection = new PageSelectionViewModel(OpenEditor, Services);
+        CurrentViewModel = pageSelection;
+
+
+        Toolbar.WhenAnyValue(x => x.SearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(text => pageSelection.FilterText = text);
     }
 
     private void OpenEditor(string filePath)

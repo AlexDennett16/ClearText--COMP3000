@@ -55,7 +55,7 @@
         VerticalAlignment="Stretch"
         VerticalScrollBarVisibility="Auto">
         <Border Margin="0,25,25,25">
-          <ItemsControl ItemsSource="{Binding Pages}">
+          <ItemsControl ItemsSource="{Binding FilteredPages}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel

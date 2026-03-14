@@ -25,10 +25,22 @@ public class PageSelectionViewModel : ViewModelBase
     private readonly IDialogService _dialogService;
     private readonly IToastService _toastService;
 
-    public ObservableCollection<PageViewModel> Pages { get; }
+    public ObservableCollection<PageViewModel> AllPages { get; }
+    public ObservableCollection<PageViewModel> FilteredPages { get; private set; }
 
     public ReactiveCommand<Unit, Unit> CreateNewDocumentCommand { get; }
     public Interaction<Unit, string?> RequestNewPageName { get; }
+    private string? _filterText;
+
+    public string? FilterText
+    {
+        get => _filterText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _filterText, value);
+            ApplyFilter();
+        }
+    }
 
     public PageSelectionViewModel(Action<string> openEditorCallback, IAppServices services)
     {
@@ -39,8 +51,11 @@ public class PageSelectionViewModel : ViewModelBase
 
         RequestNewPageName = new Interaction<Unit, string?>();
 
-        Pages = new ObservableCollection<PageViewModel>(
+        AllPages = new ObservableCollection<PageViewModel>(
             _storage.PageFilePaths.Select(CreateVM));
+
+        FilteredPages = new ObservableCollection<PageViewModel>(AllPages);
+
 
         _storage.PagePathsChanged += RefreshPages;
 
@@ -55,9 +70,11 @@ public class PageSelectionViewModel : ViewModelBase
 
     private void RefreshPages()
     {
-        Pages.Clear();
+        AllPages.Clear();
         foreach (var p in _storage.PageFilePaths)
-            Pages.Add(CreateVM(p));
+            AllPages.Add(CreateVM(p));
+
+        ApplyFilter();
     }
 
     private async void RenamePage(string oldPath)
@@ -114,5 +131,22 @@ public class PageSelectionViewModel : ViewModelBase
         var dialog = new StringDialogViewModel(_toastService, _storage, startingValue: startingValue);
         var result = await _dialogService.ShowAsync(dialog);
         return result ?? string.Empty;
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(FilterText))
+        {
+            FilteredPages = new ObservableCollection<PageViewModel>(AllPages);
+            this.RaisePropertyChanged(nameof(FilteredPages));
+            return;
+        }
+
+        var filtered = AllPages
+            .Where(p => p.Title.Contains(FilterText, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        FilteredPages = new ObservableCollection<PageViewModel>(filtered);
+        this.RaisePropertyChanged(nameof(FilteredPages));
     }
 }

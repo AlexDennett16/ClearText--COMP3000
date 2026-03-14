@@ -12,32 +12,29 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-
         <Image Grid.Column="0" Source="../Resources/ClearTextLogo.png" />
 
-        <ContentControl Grid.Column="1" Content="{Binding CurrentToolbar}">
+        <ContentControl
+            Grid.Column="1"
+            Content="{Binding CurrentToolbar}">
             <ContentControl.DataTemplates>
 
                 <DataTemplate DataType="vm:DashboardToolbarViewModel">
                     <Grid Margin="100,20,20,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
                         <TextBox
-                            Grid.Column="0"
                             MaxWidth="800"
                             MinWidth="100"
                             Height="45"
                             Watermark="Search documents..."
                             VerticalContentAlignment="Center"
-                            HorizontalAlignment="Stretch" />
+                            HorizontalAlignment="Stretch"
+                            Text="{Binding Parent.SearchText}" />
                     </Grid>
                 </DataTemplate>
 
                 <DataTemplate DataType="vm:EditorToolbarViewModel">
                     <StackPanel Orientation="Horizontal">
-                        <TextBox Text="Lorem" />
+                        <TextBox Text="{Binding Parent.SearchText}" />
                     </StackPanel>
                 </DataTemplate>
 

@@ -6,16 +6,17 @@ using ClearText.BaseTypes.BaseViewModels;
 using ReactiveUI;
 using DocumentFormat.OpenXml.Packaging;
 using System.Linq;
-using ClearText.DataObjects;
 using ClearText.Interfaces;
+using System.Diagnostics;
+using System.Text.Json;
+using ClearText.Dialogs;
+using System.Threading.Tasks;
+using ClearText.DataObjects;
 
 // Explicit OpenXML aliases to avoid collisions with avalonia controls
 using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using WordParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using WordText = DocumentFormat.OpenXml.Wordprocessing.Text;
-using System.Diagnostics;
-using System.Text.Json;
-
 
 namespace ClearText.ViewModels;
 
@@ -26,6 +27,8 @@ public class TextEditorViewModel : ViewModelBase
     private readonly IToastService _toastService;
     private readonly IGrammarService _grammarService;
     private readonly IPathService _storageService;
+    private readonly IDialogService _dialogService;
+    private readonly IDocumentStatsService _documentStatsService;
     private string _documentText = string.Empty;
     private bool _isGrammarChecking;
 
@@ -38,6 +41,7 @@ public class TextEditorViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ReturnCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
     public ReactiveCommand<Unit, Unit> AnalyseGrammarCommand { get; }
+    public ReactiveCommand<Unit, Task> ShowDocumentStatsCommand { get; }
 
     private IReadOnlyList<ClearTextError>? _errors = [];
 
@@ -53,12 +57,15 @@ public class TextEditorViewModel : ViewModelBase
         _toastService = appServices.ToastService;
         _grammarService = appServices.GrammarService;
         _storageService = appServices.PathService;
+        _dialogService = appServices.DialogService;
+        _documentStatsService = appServices.DocumentStatsService;
 
         DocumentText = LoadDocxText(filePath);
 
         ReturnCommand = ReactiveCommand.Create(returnCallback);
         SaveCommand = ReactiveCommand.Create(SaveDocxText);
         AnalyseGrammarCommand = ReactiveCommand.Create(AnalyseGrammarAction);
+        ShowDocumentStatsCommand = ReactiveCommand.Create(ShowDocumentStats);
 
         //Run grammar check on entry to populate squigglies immediately
         AnalyseGrammarAction();
@@ -171,5 +178,14 @@ public class TextEditorViewModel : ViewModelBase
         {
             _toastService.CreateAndShowErrorToast("An error occurred during grammar analysis: " + e.Message);
         }
+    }
+
+    private async Task ShowDocumentStats()
+    {
+        var stats = _documentStatsService.GetDocumentStats(DocumentText);
+        var dialog = new DataDisplayDialogViewModel(stats, "Document Statistics");
+
+
+        await _dialogService.ShowAsync(dialog);
     }
 }

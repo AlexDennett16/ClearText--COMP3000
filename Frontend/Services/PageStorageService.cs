@@ -86,7 +86,8 @@ public class PathService : IPathService
 
     public string CreatePageFilePath(string pageName)
     {
-        var fullPath = Path.Combine("C:\\Users\\alex\\Documents", pageName + ".docx");
+        var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        var fullPath = Path.Combine(documents, pageName + ".docx");
 
         using var doc = WordprocessingDocument.Create(fullPath, WordprocessingDocumentType.Document);
         var mainPart = doc.AddMainDocumentPart();

@@ -6,4 +6,5 @@ public interface IAppServices
   IDialogService DialogService { get; }
   IPathService PathService { get; }
   IGrammarService GrammarService { get; }
+  IDocumentStatsService DocumentStatsService { get; }
 }

@@ -9,6 +9,7 @@ public class AppServices : IAppServices
     public IDialogService DialogService { get; } = new DialogService();
     public IPathService PathService { get; }
     public IGrammarService GrammarService { get; }
+    public IDocumentStatsService DocumentStatsService { get; } = new DocumentStatsService();
 
     public AppServices()
     {

@@ -39,6 +39,9 @@
     <DataTemplate DataType="dialogs:StringDialogViewModel">
       <dialogViews:StringDialogView />
     </DataTemplate>
+    <DataTemplate DataType="dialogs:DataDisplayDialogViewModel">
+      <dialogViews:DataDisplayDialogView />
+    </DataTemplate>
   </Application.DataTemplates>
 
 

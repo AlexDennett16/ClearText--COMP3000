@@ -20,7 +20,7 @@ using WordText = DocumentFormat.OpenXml.Wordprocessing.Text;
 
 namespace ClearText.ViewModels;
 
-public class TextEditorViewModel : ViewModelBase
+public class TextEditorViewModel : ViewModelBase, IDisposable
 {
     private readonly string _filePath;
     private readonly List<WordRun> _originalRuns = [];
@@ -29,6 +29,7 @@ public class TextEditorViewModel : ViewModelBase
     private readonly IPathService _storageService;
     private readonly IDialogService _dialogService;
     private readonly IDocumentStatsService _documentStatsService;
+    private readonly System.Timers.Timer _autoSaveTimer;
     private string _documentText = string.Empty;
     private bool _isGrammarChecking;
 
@@ -63,12 +64,29 @@ public class TextEditorViewModel : ViewModelBase
         DocumentText = LoadDocxText(filePath);
 
         ReturnCommand = ReactiveCommand.Create(returnCallback);
-        SaveCommand = ReactiveCommand.Create(SaveDocxText);
+        SaveCommand = ReactiveCommand.Create(ManualSaveDocument);
         AnalyseGrammarCommand = ReactiveCommand.Create(AnalyseGrammarAction);
         ShowDocumentStatsCommand = ReactiveCommand.Create(ShowDocumentStats);
 
+        _autoSaveTimer = new System.Timers.Timer(TimeSpan.FromMinutes(10).TotalMilliseconds);
+        _autoSaveTimer.Elapsed += AutoSaveDocument;
+        _autoSaveTimer.AutoReset = true;
+        _autoSaveTimer.Start();
+
         //Run grammar check on entry to populate squigglies immediately
         AnalyseGrammarAction();
+    }
+
+    private void ManualSaveDocument()
+    {
+        SaveDocxText();
+        _toastService.CreateAndShowInfoToast("Document saved.");
+    }
+
+    private void AutoSaveDocument(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        SaveDocxText();
+        _toastService.CreateAndShowInfoToast("Document auto-saved.");
     }
 
     private void SaveDocxText()
@@ -116,7 +134,6 @@ public class TextEditorViewModel : ViewModelBase
 
         doc.MainDocumentPart.Document.Save();
         _storageService.TouchPage(_filePath);
-        _toastService.CreateAndShowInfoToast("Document saved successfully.");
     }
 
     private string LoadDocxText(string path)
@@ -187,5 +204,13 @@ public class TextEditorViewModel : ViewModelBase
 
 
         await _dialogService.ShowAsync(dialog);
+    }
+
+    public void Dispose()
+    {
+        _autoSaveTimer.Elapsed -= AutoSaveDocument;
+        _autoSaveTimer.Stop();
+        _autoSaveTimer.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

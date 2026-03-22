@@ -5,7 +5,7 @@
         private readonly DocumentStatsService _service = new();
 
         [Theory]
-        [InlineData(null)]
+        [InlineData(null!)]
         [InlineData("")]
         [InlineData("   ")]
         public void GetDocumentStats_ShouldReturnZeroStats_WhenInputIsNullOrWhitespace(string input)

@@ -22,6 +22,7 @@
     <Using Include="FluentAssertions" />
     <Using Include="ClearText.Services" />
     <Using Include="ClearText.DataObjects" />
+    <Using Include="System.Text.Json" />
   </ItemGroup>
 
 </Project>

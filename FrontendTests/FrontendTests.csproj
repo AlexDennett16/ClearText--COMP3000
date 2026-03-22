@@ -20,10 +20,21 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="FluentAssertions" />
-    <Using Include="ClearText.Services" />
-    <Using Include="ClearText.DataObjects" />
+    <Using Include="Moq" />
+    <Using Include="System.Reactive.Linq" />
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Threading.Tasks" />
     <Using Include="System.Text.Json" />
+
+    <Using Include="ClearText.Interfaces" />
+    <Using Include="ClearText.Services" />
+    <Using Include="ClearText.ViewModels" />
+    <Using Include="ClearText.DataObjects" />
     <Using Include="ClearText.Converters" />
+    <Using Include="ClearText.Dialogs" />
+    <Using Include="ClearText.BaseTypes.BaseViewModels" />
   </ItemGroup>
 
 </Project>

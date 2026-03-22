@@ -23,6 +23,7 @@
     <Using Include="ClearText.Services" />
     <Using Include="ClearText.DataObjects" />
     <Using Include="System.Text.Json" />
+    <Using Include="ClearText.Converters" />
   </ItemGroup>
 
 </Project>

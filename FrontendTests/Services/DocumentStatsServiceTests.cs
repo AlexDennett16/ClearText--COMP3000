@@ -8,7 +8,7 @@
         [InlineData(null!)]
         [InlineData("")]
         [InlineData("   ")]
-        public void GetDocumentStats_ShouldReturnZeroStats_WhenInputIsNullOrWhitespace(string input)
+        public void GetDocumentStats_ShouldReturnZeroStats_WhenInputIsNullOrWhitespace(string? input)
         {
             var result = _service.GetDocumentStats(input);
 
@@ -39,8 +39,8 @@
             var simpleStats = _service.GetDocumentStats(simple);
             var complexStats = _service.GetDocumentStats(complex);
 
-            double.Parse(complexStats.FleschKincaidGradeLevel)
-                .Should().BeGreaterThan(double.Parse(simpleStats.FleschKincaidGradeLevel));
+            double.Parse(complexStats.FleschKincaidGradeLevel!)
+                .Should().BeGreaterThan(double.Parse(simpleStats.FleschKincaidGradeLevel!));
         }
 
         [Theory]

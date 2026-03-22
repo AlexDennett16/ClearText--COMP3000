@@ -19,6 +19,9 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
+    <Using Include="ClearText.Services" />
+    <Using Include="ClearText.DataObjects" />
   </ItemGroup>
 
 </Project>

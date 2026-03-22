@@ -41,11 +41,22 @@
             DockPanel.Dock="Top"
             Orientation="Horizontal">
 
-            <Button Command="{Binding ReturnCommand}" Content="Back" />
-            <Button Command="{Binding SaveCommand}" Content="Save" />
-            <Button Command="{Binding AnalyseGrammarCommand}" Content="Analyse Grammar" />
-            <Button Command="{Binding ShowDocumentStatsCommand}" Content="Show Document Stats" />
-
+            <Button
+                Margin="0,0,10,0"
+                Command="{Binding ReturnCommand}"
+                Content="Back" />
+            <Button
+                Margin="0,0,10,0"
+                Command="{Binding SaveCommand}"
+                Content="Save" />
+            <Button
+                Margin="0,0,10,0"
+                Command="{Binding AnalyseGrammarCommand}"
+                Content="Analyse Grammar" />
+            <Button
+                Margin="0,0,10,0"
+                Command="{Binding ShowDocumentStatsCommand}"
+                Content="Show Document Stats" />
 
         </StackPanel>
 

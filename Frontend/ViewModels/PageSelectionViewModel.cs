@@ -21,7 +21,7 @@ public class PageSelectionViewModel : ViewModelBase
     }
 
     private readonly Action<string> _openEditor;
-    private readonly IPathService _storage;
+    private readonly IPathService _pathService;
     private readonly IDialogService _dialogService;
     private readonly IToastService _toastService;
 
@@ -46,18 +46,18 @@ public class PageSelectionViewModel : ViewModelBase
     {
         _toastService = services.ToastService;
         _openEditor = openEditorCallback;
-        _storage = services.PathService;
+        _pathService = services.PathService;
         _dialogService = services.DialogService;
 
         RequestNewPageName = new Interaction<Unit, string?>();
 
         AllPages = new ObservableCollection<PageViewModel>(
-            _storage.PageFilePaths.Select(CreateVM));
+            _pathService.PageFilePaths.Select(CreateVM));
 
         FilteredPages = new ObservableCollection<PageViewModel>(AllPages);
 
 
-        _storage.PagePathsChanged += RefreshPages;
+        _pathService.PagePathsChanged += RefreshPages;
 
         CreateNewDocumentCommand = ReactiveCommand.Create(CreateNewDocument);
     }
@@ -71,7 +71,7 @@ public class PageSelectionViewModel : ViewModelBase
     private void RefreshPages()
     {
         AllPages.Clear();
-        foreach (var p in _storage.PageFilePaths)
+        foreach (var p in _pathService.PageFilePaths)
             AllPages.Add(CreateVM(p));
 
         ApplyFilter();
@@ -82,7 +82,7 @@ public class PageSelectionViewModel : ViewModelBase
         try
         {
             var oldFileName = System.IO.Path.GetFileNameWithoutExtension(oldPath);
-            var newDocName = await CallDialog(oldFileName);
+            var newDocName = await CallRenamePageDialogAsync(oldFileName);
             if (string.IsNullOrEmpty(newDocName) || newDocName == oldFileName)
                 return;
 
@@ -91,7 +91,7 @@ public class PageSelectionViewModel : ViewModelBase
             var extension = System.IO.Path.GetExtension(oldPath);
 
             var newPath = directory + "\\" + newDocName + extension;
-            _storage.RenamePage(oldPath, newPath);
+            _pathService.RenamePage(oldPath, newPath);
             _toastService.CreateAndShowInfoToast("Document renamed to: " + newDocName);
             RefreshPages();
         }
@@ -103,7 +103,7 @@ public class PageSelectionViewModel : ViewModelBase
 
     private void DeletePage(string path)
     {
-        _storage.DeletePage(path);
+        _pathService.DeletePage(path);
         _toastService.CreateAndShowInfoToast("Document deleted.");
     }
 
@@ -111,14 +111,13 @@ public class PageSelectionViewModel : ViewModelBase
     {
         try
         {
-            var pageName = await CallDialog();
-            if (string.IsNullOrEmpty(pageName))
+            var pageNameAndFilePath = await CallNewDocumentDialog();
+            if (string.IsNullOrEmpty(pageNameAndFilePath))
                 return;
 
-            var newPath = _storage.CreatePageFilePath(pageName);
-            _storage.AddPage(newPath);
+            _pathService.AddPage(pageNameAndFilePath);
 
-            _toastService.CreateAndShowInfoToast($"Document '{pageName}' created.");
+            _toastService.CreateAndShowInfoToast($"Document '{System.IO.Path.GetFileNameWithoutExtension(pageNameAndFilePath)}' created.");
         }
         catch (Exception e)
         {
@@ -126,9 +125,18 @@ public class PageSelectionViewModel : ViewModelBase
         }
     }
 
-    private async Task<string> CallDialog(string startingValue = "")
+    private async Task<string?> CallNewDocumentDialog()
     {
-        var dialog = new StringDialogViewModel(_toastService, _storage, startingValue: startingValue);
+        var dialog = new CreateNewDocumentDialogViewModel(
+            _toastService,
+            _pathService,
+            previousFilePath: _pathService.GetLastUsedFolderPath());
+        var result = await _dialogService.ShowAsync(dialog);
+        return result;
+    }
+    private async Task<string> CallRenamePageDialogAsync(string startingValue = "")
+    {
+        var dialog = new StringDialogViewModel(_toastService, _pathService, startingValue);
         var result = await _dialogService.ShowAsync(dialog);
         return result ?? string.Empty;
     }

@@ -3,17 +3,11 @@ using ClearText.Interfaces;
 
 namespace ClearText.Services;
 
-public class AppServices : IAppServices
+public class AppServices(IUiHost host) : IAppServices
 {
     public IToastService ToastService { get; } = new ToastService();
-    public IDialogService DialogService { get; } = new DialogService();
-    public IPathService PathService { get; }
-    public IGrammarService GrammarService { get; }
+    public IDialogService DialogService { get; } = new DialogService(host);
+    public IPathService PathService { get; } = new PathService(host.Window);
+    public IGrammarService GrammarService { get; } = new GrammarService();
     public IDocumentStatsService DocumentStatsService { get; } = new DocumentStatsService();
-
-    public AppServices()
-    {
-        PathService = new PathService();
-        GrammarService = new GrammarService(PathService);
-    }
 }

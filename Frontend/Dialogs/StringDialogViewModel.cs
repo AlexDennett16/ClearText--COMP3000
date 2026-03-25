@@ -53,6 +53,6 @@ public class StringDialogViewModel : DialogViewModelBase<string?>
   {
     var illegalChars = System.IO.Path.GetInvalidFileNameChars();
     return string.IsNullOrWhiteSpace(StringValue) ||
-           StringValue.Any(illegalChars.Contains); //TODO switch statement this?
+           StringValue.Any(illegalChars.Contains);
   }
 }

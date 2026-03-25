@@ -22,14 +22,15 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            Services = new AppServices();
-
             var window = new MainWindow();
-            desktop.MainWindow = window;
             MainWindow = window;
 
-            // Attach the dialog host to the dialog service
-            Services.DialogService.SetHost(window);
+            Services = new AppServices(window);
+
+            window.DataContext = new ViewModels.MainWindowViewModel(Services);
+
+            desktop.MainWindow = window;
+
         }
 
         base.OnFrameworkInitializationCompleted();

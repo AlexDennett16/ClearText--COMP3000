@@ -1,0 +1,56 @@
+<UserControl
+    x:Class="ClearText.Dialogs.CreateNewDocumentDialogView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:ClearText.Dialogs"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="vm:CreateNewDocumentDialogViewModel"
+    mc:Ignorable="d">
+
+    <Border
+        Width="600"
+        Padding="24"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Background="#4D4D4D"
+        BoxShadow="0 6 18 0 #40000000"
+        CornerRadius="16">
+
+        <StackPanel Spacing="16">
+
+            <TextBlock
+                x:Name="DialogHeader"
+                Margin="0,0,0,4"
+                HorizontalAlignment="Center"
+                FontSize="20"
+                FontWeight="SemiBold"
+                Foreground="#FFF"
+                Text="{Binding Title}" />
+
+            <!--  Divider line  -->
+            <Border
+                Height="1"
+                Margin="0,0,0,8"
+                Background="#000" />
+
+            <StackPanel Spacing="12">
+                <TextBlock Text="Enter Document Name:" />
+                <TextBox Text="{Binding DocumentName, Mode=TwoWay}" />
+            </StackPanel>
+
+            <StackPanel Margin="0,0,0,20" Spacing="12">
+                <TextBlock Text="Choose folder:" />
+                <TextBox IsReadOnly="True" Text="{Binding FilePath, Mode=TwoWay}" />
+                <Button Command="{Binding Browse}" Content="Browse..." />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <Button Command="{Binding Cancel}" Content="Cancel" />
+                <Button Command="{Binding Confirm}" Content="Confirm" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

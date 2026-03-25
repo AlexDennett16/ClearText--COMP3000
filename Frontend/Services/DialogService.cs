@@ -4,14 +4,9 @@ using ClearText.Interfaces;
 
 namespace ClearText.Services;
 
-public class DialogService : IDialogService
+public class DialogService(IUiHost host) : IDialogService
 {
-  private IDialogHost? _host;
-
-  public void SetHost(IDialogHost host)
-  {
-    _host = host;
-  }
+  private readonly IUiHost? _host = host;
 
   public Task<TResult?> ShowAsync<TResult>(DialogViewModelBase<TResult> vm)
   {

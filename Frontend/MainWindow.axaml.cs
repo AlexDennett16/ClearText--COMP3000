@@ -4,7 +4,7 @@ using ClearText.Interfaces;
 
 namespace ClearText;
 
-public partial class MainWindow : Window, IDialogHost, INotifyPropertyChanged
+public partial class MainWindow : Window, IUiHost, INotifyPropertyChanged
 {
     private object? _dialogViewModel;
 
@@ -21,11 +21,12 @@ public partial class MainWindow : Window, IDialogHost, INotifyPropertyChanged
         }
     }
 
+    public Window Window => this;
+
     public new event PropertyChangedEventHandler? PropertyChanged;
 
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = new ViewModels.MainWindowViewModel(App.Services);
     }
 }

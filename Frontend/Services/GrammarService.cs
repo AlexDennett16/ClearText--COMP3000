@@ -16,11 +16,11 @@ public class GrammarService : IGrammarService
     private Process? _pythonProcess;
     private readonly SemaphoreSlim _lock = new(1, 1);
 
-    public GrammarService(IPathService pathService)
+    public GrammarService()
     {
-        var pythonInfo = pathService.LoadPythonFilePath();
-        _pythonPath = pythonInfo.PythonExe;
-        _workingDirectory = pythonInfo.WorkingDirectory;
+        var (pythonExe, workingDirectory) = LoadPythonFilePath();
+        _pythonPath = pythonExe;
+        _workingDirectory = workingDirectory;
     }
 
 
@@ -109,5 +109,38 @@ public class GrammarService : IGrammarService
         _pythonProcess.Kill(true);
         _pythonProcess.Dispose();
         _pythonProcess = null;
+    }
+
+    private (string PythonExe, string WorkingDirectory) LoadPythonFilePath()
+    {
+        var baseDir = AppContext.BaseDirectory;
+        var projectRoot = FindDirectoryUpwards(baseDir, "ClearText--COMP3000")
+                          ?? throw new DirectoryNotFoundException("Could not locate project root.");
+
+        var pythonPath = Path.Combine(projectRoot, ".venv", "Scripts", "python.exe");
+        if (!File.Exists(pythonPath))
+            throw new FileNotFoundException($"Python executable not found at: {pythonPath}");
+
+        var backendDir = Path.Combine(projectRoot, "Backend");
+        if (!Directory.Exists(backendDir))
+            throw new DirectoryNotFoundException($"Backend directory not found at: {backendDir}");
+
+        return (pythonPath, backendDir);
+    }
+
+    private static string? FindDirectoryUpwards(string startDir, string targetFolderName)
+    {
+        var dir = new DirectoryInfo(startDir);
+
+        while (dir != null)
+        {
+            var candidate = Path.Combine(dir.FullName, targetFolderName);
+            if (Directory.Exists(candidate))
+                return candidate;
+
+            dir = dir.Parent;
+        }
+
+        return null;
     }
 }

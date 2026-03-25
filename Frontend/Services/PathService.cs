@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using ClearText.Interfaces;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -14,13 +17,14 @@ public class PathService : IPathService
 {
     private readonly string _storagePath = DeterminePageStoragePath();
     private readonly List<string> _cachedPaths;
-
+    private readonly Window _mainWindow;
+    public string LastUsedFolder { get; private set; } = "";
     public event Action? PagePathsChanged;
-
     public IReadOnlyList<string> PageFilePaths => _cachedPaths;
 
-    public PathService()
+    public PathService(Window window)
     {
+        _mainWindow = window;
         _cachedPaths = LoadOrCreate();
     }
 
@@ -30,10 +34,8 @@ public class PathService : IPathService
         {
             var defaultConfig = new PageConfig
             {
-                Pages =
-                [
-                    "C:\\Users\\alex\\Downloads\\Test.docx" // TODO remove after testing
-                ]
+                Pages = [],
+                LastUsedFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
             SaveConfig(defaultConfig);
@@ -42,6 +44,10 @@ public class PathService : IPathService
 
         var json = File.ReadAllText(_storagePath);
         var config = JsonSerializer.Deserialize<PageConfig>(json);
+
+        LastUsedFolder = config?.LastUsedFolder
+                          ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
         return config?.Pages ?? [];
     }
 
@@ -53,13 +59,22 @@ public class PathService : IPathService
 
     private void Persist()
     {
-        SaveConfig(new PageConfig { Pages = _cachedPaths.ToList() });
+        SaveConfig(new PageConfig
+        {
+            Pages = _cachedPaths.ToList(),
+            LastUsedFolder = LastUsedFolder
+        });
+
         PagePathsChanged?.Invoke();
     }
 
     public void AddPage(string path)
     {
+        if (_cachedPaths.Contains(path))
+            return;
+
         _cachedPaths.Insert(0, path);
+        CreateDocument(path);
         Persist();
     }
 
@@ -84,17 +99,12 @@ public class PathService : IPathService
         Persist();
     }
 
-    public string CreatePageFilePath(string pageName)
+    public static void CreateDocument(string filePath)
     {
-        var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        var fullPath = Path.Combine(documents, pageName + ".docx");
-
-        using var doc = WordprocessingDocument.Create(fullPath, WordprocessingDocumentType.Document);
+        using var doc = WordprocessingDocument.Create(filePath, WordprocessingDocumentType.Document);
         var mainPart = doc.AddMainDocumentPart();
         mainPart.Document = new Document(new Body());
         mainPart.Document.Save();
-
-        return fullPath;
     }
 
     public void TouchPage(string path)
@@ -105,39 +115,6 @@ public class PathService : IPathService
         Persist();
     }
 
-
-    public (string PythonExe, string WorkingDirectory) LoadPythonFilePath()
-    {
-        var baseDir = AppContext.BaseDirectory;
-        var projectRoot = FindDirectoryUpwards(baseDir, "ClearText--COMP3000")
-                          ?? throw new DirectoryNotFoundException("Could not locate project root.");
-
-        var pythonPath = Path.Combine(projectRoot, ".venv", "Scripts", "python.exe");
-        if (!File.Exists(pythonPath))
-            throw new FileNotFoundException($"Python executable not found at: {pythonPath}");
-
-        var backendDir = Path.Combine(projectRoot, "Backend");
-        if (!Directory.Exists(backendDir))
-            throw new DirectoryNotFoundException($"Backend directory not found at: {backendDir}");
-
-        return (pythonPath, backendDir);
-    }
-
-    private static string? FindDirectoryUpwards(string startDir, string targetFolderName)
-    {
-        var dir = new DirectoryInfo(startDir);
-
-        while (dir != null)
-        {
-            var candidate = Path.Combine(dir.FullName, targetFolderName);
-            if (Directory.Exists(candidate))
-                return candidate;
-
-            dir = dir.Parent;
-        }
-
-        return null;
-    }
 
     private static string DeterminePageStoragePath()
     {
@@ -151,9 +128,41 @@ public class PathService : IPathService
     {
         return _cachedPaths.Select(Path.GetFileNameWithoutExtension).ToList();
     }
+
+    public async Task<string?> OpenFolderPickerAsync()
+    {
+        var options = new FolderPickerOpenOptions
+        {
+            AllowMultiple = false,
+            Title = "Select folder"
+        };
+
+
+        if (Directory.Exists(LastUsedFolder))
+        {
+            var folder = await _mainWindow.StorageProvider.TryGetFolderFromPathAsync(LastUsedFolder);
+            if (folder != null)
+                options.SuggestedStartLocation = folder;
+        }
+
+        var result = await _mainWindow.StorageProvider.OpenFolderPickerAsync(options);
+        var filePath = result.FirstOrDefault()?.Path.LocalPath;
+        if (!string.IsNullOrEmpty(filePath))
+        {
+            LastUsedFolder = filePath;
+        }
+
+        return filePath;
+    }
+
+    public string GetLastUsedFolderPath()
+    {
+        return LastUsedFolder;
+    }
 }
 
 public class PageConfig
 {
     public List<string> Pages { get; set; } = [];
+    public string? LastUsedFolder { get; set; }
 }

@@ -6,3 +6,4 @@ spacy
 pandas
 pyspellchecker
 wordfreq
+pytest

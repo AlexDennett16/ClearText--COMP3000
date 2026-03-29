@@ -15,7 +15,7 @@ namespace ClearText.Services;
 
 public class PathService : IPathService
 {
-    private readonly string _storagePath = DeterminePageStoragePath();
+    private readonly string _storagePath = DetermineDefaultPageStoragePath();
     private readonly List<string> _cachedPaths;
     private readonly Window _mainWindow;
     public string LastUsedFolder { get; private set; } = "";
@@ -116,7 +116,7 @@ public class PathService : IPathService
     }
 
 
-    private static string DeterminePageStoragePath()
+    private static string DetermineDefaultPageStoragePath()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var configDir = Path.Combine(appData, "ClearText");

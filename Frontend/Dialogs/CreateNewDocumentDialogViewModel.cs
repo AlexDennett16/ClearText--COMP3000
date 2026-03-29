@@ -37,7 +37,7 @@ public class CreateNewDocumentDialogViewModel : DialogViewModelBase<string?>
         _pathService = pathService;
         FilePath = previousFilePath;
 
-        Title = "Please enter a Document name and choose a folder";
+        Title = "Create a Document";
 
         Confirm = ReactiveCommand.Create(ExecuteConfirm);
         Cancel = ReactiveCommand.Create(() => Close?.Invoke(null));

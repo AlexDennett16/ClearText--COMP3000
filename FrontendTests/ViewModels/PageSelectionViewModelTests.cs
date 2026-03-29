@@ -84,18 +84,17 @@ public class PageSelectionViewModelTests
         var dialog = new Mock<IDialogService>();
         var toast = new Mock<IToastService>();
 
-        dialog.Setup(x => x.ShowAsync<string?>(It.IsAny<DialogViewModelBase<string?>>()))
-              .ReturnsAsync("NewDoc");
+        dialog.Setup(x => x.ShowAsync(It.IsAny<DialogViewModelBase<string?>>()))
+        .ReturnsAsync("C:/Docs/NewDoc.docx");
 
-        path.Setup(x => x.CreatePageFilePath("NewDoc"))
-            .Returns("C:/Docs/NewDoc.docx");
+        path.Setup(x => x.AddPage("C:/Docs/NewDoc.docx"));
 
         var vm = CreateVM(path, dialog, toast);
 
         vm.CreateNewDocumentCommand.Execute().Subscribe();
 
         path.Verify(x => x.AddPage("C:/Docs/NewDoc.docx"), Times.Once);
-        toast.Verify(x => x.CreateAndShowInfoToast(It.IsAny<string>()), Times.Once);
+        toast.Verify(x => x.CreateAndShowInfoToast(It.IsAny<string>(), null), Times.Once);
     }
 
     [Fact]
@@ -137,7 +136,7 @@ public class PageSelectionViewModelTests
             It.Is<string>(s => s.EndsWith("Renamed.docx"))
         ), Times.Once);
 
-        toast.Verify(x => x.CreateAndShowInfoToast(It.IsAny<string>()), Times.Once);
+        toast.Verify(x => x.CreateAndShowInfoToast(It.IsAny<string>(), null), Times.Once);
     }
 
     [Fact]
@@ -154,7 +153,7 @@ public class PageSelectionViewModelTests
         delete.Invoke(vm, new object[] { "C:/Docs/ToDelete.docx" });
 
         path.Verify(x => x.DeletePage("C:/Docs/ToDelete.docx"), Times.Once);
-        toast.Verify(x => x.CreateAndShowInfoToast(It.IsAny<string>()), Times.Once);
+        toast.Verify(x => x.CreateAndShowInfoToast(It.IsAny<string>(), null), Times.Once);
     }
 
     [Fact]

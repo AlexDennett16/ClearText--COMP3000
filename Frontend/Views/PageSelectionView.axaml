@@ -1,83 +1,88 @@
 <UserControl
-  x:Class="ClearText.Views.PageSelectionView"
-  xmlns="https://github.com/avaloniaui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-  xmlns:views="clr-namespace:ClearText.Views"
-  xmlns:vm="clr-namespace:ClearText.ViewModels"
-  d:DesignHeight="1080"
-  d:DesignWidth="1920"
-  x:DataType="vm:PageSelectionViewModel"
-  mc:Ignorable="d">
+    x:Class="ClearText.Views.PageSelectionView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="clr-namespace:ClearText.Views"
+    xmlns:vm="clr-namespace:ClearText.ViewModels"
+    d:DesignHeight="1080"
+    d:DesignWidth="1920"
+    x:DataType="vm:PageSelectionViewModel"
+    mc:Ignorable="d">
 
   <Grid Margin="30" RowDefinitions="Auto, Auto, *">
 
-    <TextBlock Grid.Row="0"
-               Text="Welcome to ClearText! Open a document to get started!"
-               FontSize="40"
-               VerticalAlignment="Center" />
+    <TextBlock
+        Grid.Row="0"
+        VerticalAlignment="Center"
+        FontSize="40"
+        Text="Welcome to ClearText! Open a document to get started!" />
     <StackPanel
-      Grid.Row="1"
-      Margin="0,15,0,15"
-      HorizontalAlignment="Left"
-      Orientation="Horizontal"
-      Spacing="100">
+        Grid.Row="1"
+        Margin="0,15,0,15"
+        HorizontalAlignment="Left"
+        Orientation="Horizontal"
+        Spacing="100">
       <Button Classes="selection-button" Command="{Binding CreateNewDocumentCommand}">
-        <StackPanel Spacing="8" HorizontalAlignment="Center">
+        <StackPanel HorizontalAlignment="Center" Spacing="8">
 
           <Grid Width="40" Height="40">
-            <Path Data="M10 4 H14 V10 H20 V14 H14 V20 H10 V14 H4 V10 H10 Z"
-                  Fill="White"
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Center" />
+            <Path
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Data="M10 4 H14 V10 H20 V14 H14 V20 H10 V14 H4 V10 H10 Z"
+                Fill="White" />
           </Grid>
 
-          <TextBlock Text="New Document"
-                     HorizontalAlignment="Center"
-                     FontSize="18" />
+          <TextBlock
+              HorizontalAlignment="Center"
+              FontSize="18"
+              Text="New Document" />
         </StackPanel>
       </Button>
 
 
-      <Button Classes="selection-button">
-        <StackPanel Spacing="8" HorizontalAlignment="Center">
+      <Button Classes="selection-button" IsEnabled="False">
+        <StackPanel HorizontalAlignment="Center" Spacing="8">
 
           <Grid Width="40" Height="40">
-            <Path Data="M6 2 H14 L20 8 V22 H6 Z"
-                  Fill="White"
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Center" />
+            <Path
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Data="M6 2 H14 L20 8 V22 H6 Z"
+                Fill="White" />
           </Grid>
 
-          <TextBlock Text="New Template"
-                     HorizontalAlignment="Center"
-                     FontSize="18" />
+          <TextBlock
+              HorizontalAlignment="Center"
+              FontSize="18"
+              Text="New Template" />
         </StackPanel>
       </Button>
     </StackPanel>
     <StackPanel Grid.Row="2" Orientation="Horizontal">
       <ScrollViewer
-        HorizontalAlignment="Stretch"
-        VerticalAlignment="Stretch"
-        VerticalScrollBarVisibility="Auto">
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          VerticalScrollBarVisibility="Auto">
         <Border Margin="0,25,25,25">
           <ItemsControl ItemsSource="{Binding FilteredPages}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel
-                  Width="{Binding WrapWidth}"
-                  HorizontalAlignment="Left"
-                  Orientation="Horizontal" />
+                    Width="{Binding WrapWidth}"
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal" />
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
 
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:PageViewModel">
                 <views:PageView
-                  Width="200"
-                  Height="322"
-                  Margin="0,10,30,10" />
+                    Width="200"
+                    Height="322"
+                    Margin="0,10,30,10" />
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
@@ -86,4 +91,3 @@
     </StackPanel>
   </Grid>
 </UserControl>
-

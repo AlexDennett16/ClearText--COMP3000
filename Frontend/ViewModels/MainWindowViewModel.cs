@@ -16,7 +16,14 @@ public class MainWindowViewModel : ViewModelBase
     public ViewModelBase CurrentViewModel
     {
         get => _currentViewModel ?? throw new InvalidOperationException("CurrentViewModel is not set");
-        set => this.RaiseAndSetIfChanged(ref _currentViewModel, value);
+        set
+        {
+            if (_currentViewModel is IDisposable disposable)
+                disposable.Dispose();
+
+
+            this.RaiseAndSetIfChanged(ref _currentViewModel, value);
+        }
     }
 
     private ToolbarMode _toolbarMode;

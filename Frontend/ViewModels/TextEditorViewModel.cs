@@ -12,6 +12,7 @@ using System.Text.Json;
 using ClearText.Dialogs;
 using System.Threading.Tasks;
 using ClearText.DataObjects;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 // Explicit OpenXML aliases to avoid collisions with avalonia controls
 using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
@@ -174,12 +175,20 @@ public class TextEditorViewModel : ViewModelBase, IDisposable
                 _toastService.CreateAndShowInfoToast("Analyzing grammar...");
 
                 var sw = Stopwatch.StartNew();
-                var payload = JsonSerializer.Serialize(new { text = DocumentText });
-                var response = await _grammarService.CheckGrammarAsync(payload);
+                //var payload = JsonSerializer.Serialize(new { text = DocumentText });
+                var response = await _grammarService.CheckGrammarAsync(DocumentText); //Just send text not JSON?
                 sw.Stop();
 
                 Errors = response?.Errors;
                 _toastService.CreateAndShowInfoToast($"Grammar analysis took {sw.ElapsedMilliseconds}ms");
+
+
+
+                //TODO - REMOVE THIS DEBUG STUFF BELOW MEANT FOR TESTING ONLY
+                foreach (var error in Errors)
+                {
+                    _toastService.CreateAndShowInfoToast($"Error: {error.Type} at index {error.Index} on token '{error.Token}'. Suggestions: {string.Join(", ", error.Suggestions)}");
+                }
             }
             catch (Exception e)
             {

@@ -1,10 +1,11 @@
 using System;
 using System.Collections.ObjectModel;
+using ClearText.BaseTypes;
 using ClearText.BaseTypes.BaseViewModels;
 
 namespace ClearText.Interfaces;
 
-public interface IToastService
+public interface IToastService : IBaseServiceInterface
 {
   ObservableCollection<ToastNotificationViewModelBase> Toasts { get; }
 

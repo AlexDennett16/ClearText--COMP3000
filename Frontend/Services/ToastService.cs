@@ -2,14 +2,14 @@ using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Avalonia.Threading;
+using ClearText.BaseTypes;
 using ClearText.BaseTypes.BaseViewModels;
 using ClearText.Interfaces;
 using ClearText.Toasts;
-using ReactiveUI;
 
 namespace ClearText.Services;
 
-public class ToastService : ReactiveObject, IToastService
+public class ToastService : BaseService, IToastService
 {
     public ObservableCollection<ToastNotificationViewModelBase> Toasts { get; } = [];
 

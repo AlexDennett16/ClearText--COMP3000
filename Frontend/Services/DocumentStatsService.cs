@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
+using ClearText.BaseTypes;
 using ClearText.DataObjects;
 using ClearText.Interfaces;
 
 namespace ClearText.Services;
 
-public class DocumentStatsService : IDocumentStatsService
+public class DocumentStatsService : BaseService, IDocumentStatsService
 {
     public DocumentStats GetDocumentStats(string documentText)
     {

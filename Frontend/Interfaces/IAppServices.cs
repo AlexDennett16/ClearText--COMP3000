@@ -1,6 +1,8 @@
+using ClearText.BaseTypes;
+
 namespace ClearText.Interfaces;
 
-public interface IAppServices
+public interface IAppServices : IBaseServiceInterface
 {
   IToastService ToastService { get; }
   IDialogService DialogService { get; }

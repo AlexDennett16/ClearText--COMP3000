@@ -1,10 +1,11 @@
 using System.Threading.Tasks;
+using ClearText.BaseTypes;
 using ClearText.BaseTypes.BaseViewModels;
 using ClearText.Interfaces;
 
 namespace ClearText.Services;
 
-public class DialogService(IUiHost host) : IDialogService
+public class DialogService(IUiHost host) : BaseService, IDialogService
 {
   private readonly IUiHost? _host = host;
 

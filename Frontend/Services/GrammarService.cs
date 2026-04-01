@@ -1,117 +1,105 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using ClearText.DataObjects;
 using ClearText.Interfaces;
+using Grpc.Net.Client;
+using Grammar;
+using System.Linq;
+using ClearTextError = ClearText.DataObjects.ClearTextError;
+using System.Diagnostics;
+using System;
+using System.IO;
+using System.Net.Http;
+using ClearText.BaseTypes;
 
 namespace ClearText.Services;
 
-public class GrammarService : IGrammarService
+public class GrammarService : BaseService, IGrammarService
 {
-    private readonly string _pythonPath;
-    private readonly string _workingDirectory;
+    private Grammar.GrammarService.GrammarServiceClient? _client;
     private Process? _pythonProcess;
-    private readonly SemaphoreSlim _lock = new(1, 1);
 
     public GrammarService()
     {
-        var (pythonExe, workingDirectory) = LoadPythonFilePath();
-        _pythonPath = pythonExe;
-        _workingDirectory = workingDirectory;
+        _ = StartupAsync();
     }
 
-
-    public async Task StartupAsync()
+    private async Task StartupAsync()
     {
-        await Task.Run(EnsurePythonPersists);
-    }
-
-    private void EnsurePythonPersists()
-    {
-        if (_pythonProcess is { HasExited: false })
-            return;
-
-        if (!File.Exists(_pythonPath))
-            throw new FileNotFoundException("Python executable not found", _pythonPath);
-
-        if (!Directory.Exists(_workingDirectory))
-            throw new DirectoryNotFoundException("Working directory not found: " + _workingDirectory);
-
         var psi = new ProcessStartInfo
         {
-            FileName = _pythonPath,
-            Arguments = "-m AI.Pipeline",
-            WorkingDirectory = _workingDirectory,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            RedirectStandardInput = true,
+            FileName = LoadPythonFilePath().PythonExe,
+            Arguments = "grammar_server.py",
+            WorkingDirectory = LoadPythonFilePath().WorkingDirectory,
             UseShellExecute = false,
             CreateNoWindow = true,
-            EnvironmentVariables =
-            {
-                ["CREATE_PROCESS_GROUP"] = "1"
-            }
         };
 
         _pythonProcess = Process.Start(psi);
+        await WaitForServerAsync();
+
+        var channel = GrpcChannel.ForAddress("http://localhost:50051");
+        _client = new Grammar.GrammarService.GrammarServiceClient(channel);
+    }
+
+    public void StartPythonServer()
+    {
+        //demo TODO REMOVE ME
+    }
+
+    private async Task WaitForServerAsync()
+    {
+        using var http = new HttpClient();
+
+        for (var i = 0; i < 20; i++) // retry for ~2 seconds
+        {
+            try
+            {
+                using var channel = GrpcChannel.ForAddress("http://127.0.0.1:50051");
+                await new Grammar.GrammarService.GrammarServiceClient(channel)
+                    .CheckGrammarAsync(new GrammarRequest { Text = "" });
+
+                return; //server ready
+            }
+            catch
+            {
+                await Task.Delay(100);
+            }
+        }
+        throw new Exception("Python gRPC server did not start in time.");
     }
 
     public async Task<ClearTextResult?> CheckGrammarAsync(string text)
     {
-        //UI locks are in place, but ensures no crashes
-        await _lock.WaitAsync();
-        try
+        // Build the gRPC request
+        var request = new GrammarRequest
         {
-            EnsurePythonPersists();
+            Text = text
+        };
 
-            if (_pythonProcess == null)
-                return null;
+        // Call the Python grammar service
+        if (_client == null)
+        {
+            throw new Exception("Grammar service is not ready. Please try again later."); //Make more specific exception
+        }
 
-            await _pythonProcess.StandardInput.WriteLineAsync(text);
-            await _pythonProcess.StandardInput.FlushAsync();
+        var reply = await _client.CheckGrammarAsync(request);
 
-            var output = await _pythonProcess.StandardOutput.ReadLineAsync();
-
-            //Covers the null or empty cases, which likely indicates a python error
-            if (string.IsNullOrWhiteSpace(output))
+        // Convert the response into existing ClearTextResult
+        return new ClearTextResult
+        {
+            Text = reply.CorrectedText,
+            Errors = reply.Errors.Select(e => new ClearTextError
             {
-                Console.WriteLine("Python error, Empty or Null output: " +
-                                  await _pythonProcess.StandardError.ReadToEndAsync());
-                return new ClearTextResult
-                {
-                    Errors = [],
-                    Text = "",
-                    Tokens = []
-                };
-            }
-
-            Console.WriteLine("Python output: " + output);
-            var result = JsonSerializer.Deserialize<ClearTextResult>(output,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            Console.WriteLine("Deserialized result: " + result);
-            return result;
-        }
-        finally
-        {
-            _lock.Release();
-        }
+                Type = e.Type,
+                Token = e.Token,
+                Index = e.Index,
+                Suggestions = e.Suggestions.ToList()
+            }).ToList(),
+            Tokens = [.. reply.Tokens]
+        };
     }
 
-    public void KillPythonProcess()
-    {
-        if (_pythonProcess is not { HasExited: false })
-            return;
-
-        _pythonProcess.StandardInput.Close();
-        _pythonProcess.Kill(true);
-        _pythonProcess.Dispose();
-        _pythonProcess = null;
-    }
-
-    private (string PythonExe, string WorkingDirectory) LoadPythonFilePath()
+    private static (string PythonExe, string WorkingDirectory) LoadPythonFilePath()
     {
         var baseDir = AppContext.BaseDirectory;
         var projectRoot = FindDirectoryUpwards(baseDir, "ClearText--COMP3000")
@@ -142,5 +130,14 @@ public class GrammarService : IGrammarService
         }
 
         return null;
+    }
+
+    public override void Dispose()
+    {
+        if (_pythonProcess is { HasExited: false })
+        {
+            _pythonProcess.Kill(entireProcessTree: true);
+            _pythonProcess.Dispose();
+        }
     }
 }

@@ -4,11 +4,12 @@ using Avalonia;
 using Avalonia.Media;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
+using ClearText.BaseTypes;
 using ClearText.DataObjects;
 
 namespace ClearText.Services
 {
-    public class TextMarkerService(TextDocument document) : IBackgroundRenderer
+    public class TextMarkerService(TextDocument document) : BaseService, IBackgroundRenderer
     {
         private readonly TextSegmentCollection<TextMarker> _markers = new(document);
 

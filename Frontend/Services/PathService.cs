@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using ClearText.BaseTypes;
 using ClearText.Interfaces;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -13,7 +14,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace ClearText.Services;
 
-public class PathService : IPathService
+public class PathService : BaseService, IPathService
 {
     private readonly string _storagePath = DetermineDefaultPageStoragePath();
     private readonly List<string> _cachedPaths;

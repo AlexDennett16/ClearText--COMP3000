@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using AvaloniaEdit.Editing;
 using ClearText.Services;
 
 namespace ClearText;
@@ -31,15 +32,20 @@ public partial class App : Application
 
             desktop.MainWindow = window;
 
+            desktop.Exit += OnAppExit;
         }
 
         base.OnFrameworkInitializationCompleted();
 
-        Services.GrammarService.StartupAsync();
-
-        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
-            Services.GrammarService.KillPythonProcess();
-        AppDomain.CurrentDomain.UnhandledException += (_, _) =>
-            Services.GrammarService.KillPythonProcess();
+        Services.GrammarService.StartPythonServer();
     }
+
+
+
+    private void OnAppExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    {
+        Services.Dispose();
+    }
+
+
 }

@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
+using ClearText.BaseTypes;
 using ClearText.DataObjects;
 
 namespace ClearText.Interfaces;
 
-public interface IGrammarService
+public interface IGrammarService : IBaseServiceInterface
 {
-    Task StartupAsync();
     Task<ClearTextResult?> CheckGrammarAsync(string text);
-    void KillPythonProcess();
+    void StartPythonServer();
 }

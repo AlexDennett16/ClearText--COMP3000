@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package grammar;
+
+// -----------------------------
+// ClearTextError Definition
+// -----------------------------
+message ClearTextError {
+  string type = 1;              // maps to C# string Type
+  string token = 2;             // maps to C# string Token
+  int32 index = 3;              // maps to C# int Index
+  repeated string suggestions = 4; // maps to C# List<string> Suggestions
+}
+
+// -----------------------------
+// Request message
+// -----------------------------
+message GrammarRequest {
+  string text = 1;
+}
+
+// -----------------------------
+// Response message
+// -----------------------------
+message GrammarResponse {
+  string corrected_text = 1;
+  repeated ClearTextError errors = 2;
+  repeated string tokens = 3;
+}
+
+// -----------------------------
+// Service Definition
+// -----------------------------
+service GrammarService {
+  rpc CheckGrammar (GrammarRequest) returns (GrammarResponse);
+}

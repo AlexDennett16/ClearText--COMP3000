@@ -8,11 +8,9 @@ using DocumentFormat.OpenXml.Packaging;
 using System.Linq;
 using ClearText.Interfaces;
 using System.Diagnostics;
-using System.Text.Json;
 using ClearText.Dialogs;
 using System.Threading.Tasks;
 using ClearText.DataObjects;
-using DocumentFormat.OpenXml.Wordprocessing;
 
 // Explicit OpenXML aliases to avoid collisions with avalonia controls
 using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
@@ -181,14 +179,6 @@ public class TextEditorViewModel : ViewModelBase, IDisposable
 
                 Errors = response?.Errors;
                 _toastService.CreateAndShowInfoToast($"Grammar analysis took {sw.ElapsedMilliseconds}ms");
-
-
-
-                //TODO - REMOVE THIS DEBUG STUFF BELOW MEANT FOR TESTING ONLY
-                foreach (var error in Errors)
-                {
-                    _toastService.CreateAndShowInfoToast($"Error: {error.Type} at index {error.Index} on token '{error.Token}'. Suggestions: {string.Join(", ", error.Suggestions)}");
-                }
             }
             catch (Exception e)
             {

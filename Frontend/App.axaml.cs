@@ -3,7 +3,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using AvaloniaEdit.Editing;
 using ClearText.Services;
 
 namespace ClearText;
@@ -42,10 +41,8 @@ public partial class App : Application
 
 
 
-    private void OnAppExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    private static void OnAppExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
     {
         Services.Dispose();
     }
-
-
 }

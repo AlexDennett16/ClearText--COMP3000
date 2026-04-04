@@ -67,11 +67,6 @@ public class GrammarService : BaseService, IGrammarService
         _client = new Grammar.GrammarService.GrammarServiceClient(channel);
     }
 
-    public void StartPythonServer()
-    {
-        //demo TODO REMOVE ME
-    }
-
     private async Task WaitForServerAsync()
     {
         using var http = new HttpClient();

@@ -7,5 +7,4 @@ namespace ClearText.Interfaces;
 public interface IGrammarService : IBaseServiceInterface
 {
     Task<ClearTextResult?> CheckGrammarAsync(string text);
-    void StartPythonServer();
 }

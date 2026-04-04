@@ -10,18 +10,43 @@ using System;
 using System.IO;
 using System.Net.Http;
 using ClearText.BaseTypes;
+using ClearText.Exceptions;
 
 namespace ClearText.Services;
 
 public class GrammarService : BaseService, IGrammarService
 {
+
+    public bool IsReady { get; private set; }
+    public Exception? StartupError { get; private set; }
+
     private Grammar.GrammarService.GrammarServiceClient? _client;
     private Process? _pythonProcess;
 
     public GrammarService()
     {
-        _ = StartupAsync();
+        StartInBackground();
     }
+
+    private void StartInBackground()
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                await StartupAsync();
+                IsReady = true;
+                Console.WriteLine("GrammarService ready");
+            }
+            catch (Exception ex)
+            {
+                StartupError = ex;
+                Console.WriteLine("GrammarService failed: " + ex);
+            }
+        });
+
+    }
+
 
     private async Task StartupAsync()
     {
@@ -35,9 +60,10 @@ public class GrammarService : BaseService, IGrammarService
         };
 
         _pythonProcess = Process.Start(psi);
+
         await WaitForServerAsync();
 
-        var channel = GrpcChannel.ForAddress("http://localhost:50051");
+        var channel = GrpcChannel.ForAddress("http://127.0.0.1:50051");
         _client = new Grammar.GrammarService.GrammarServiceClient(channel);
     }
 
@@ -50,13 +76,13 @@ public class GrammarService : BaseService, IGrammarService
     {
         using var http = new HttpClient();
 
-        for (var i = 0; i < 20; i++) // retry for ~2 seconds
+        for (var i = 0; i < 200; i++) // retry for 20 seconds
         {
             try
             {
                 using var channel = GrpcChannel.ForAddress("http://127.0.0.1:50051");
                 await new Grammar.GrammarService.GrammarServiceClient(channel)
-                    .CheckGrammarAsync(new GrammarRequest { Text = "" });
+                    .PingAsync(new Google.Protobuf.WellKnownTypes.Empty());
 
                 return; //server ready
             }
@@ -70,6 +96,11 @@ public class GrammarService : BaseService, IGrammarService
 
     public async Task<ClearTextResult?> CheckGrammarAsync(string text)
     {
+        if (!IsReady)
+        {
+            throw new GrammarServiceNotReadyException();
+        }
+
         // Build the gRPC request
         var request = new GrammarRequest
         {
@@ -79,7 +110,7 @@ public class GrammarService : BaseService, IGrammarService
         // Call the Python grammar service
         if (_client == null)
         {
-            throw new Exception("Grammar service is not ready. Please try again later."); //Make more specific exception
+            throw new GrammarServiceUnavailableException(StartupError ?? new Exception("Grammar service client not initialized."));
         }
 
         var reply = await _client.CheckGrammarAsync(request);

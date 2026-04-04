@@ -1,3 +1,4 @@
+from google.protobuf.empty_pb2 import Empty
 import sys
 
 import grpc
@@ -15,7 +16,7 @@ class GrammarServicer(grammar_pb2_grpc.GrammarServiceServicer):
     print("sys.path =", sys.path)
     print("Has ClearTextError:", hasattr(grammar_pb2, "ClearTextError"))
 
-    def CheckGrammar(self, request):
+    def CheckGrammar(self, request, context):
         text = request.text
         result = grammar_pipeline(text)
 
@@ -34,6 +35,9 @@ class GrammarServicer(grammar_pb2_grpc.GrammarServiceServicer):
             tokens=result.get("tokens", []),
             errors=errors,
         )
+
+    def Ping(self, request, context):
+        return Empty()
 
 
 def serve():

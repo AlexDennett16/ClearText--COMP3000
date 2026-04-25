@@ -9,3 +9,4 @@ wordfreq
 pytest
 grpcio
 grpcio-tools
+protobuf

@@ -45,6 +45,9 @@
     <DataTemplate DataType="dialogs:CreateNewDocumentDialogViewModel">
       <dialogViews:CreateNewDocumentDialogView />
     </DataTemplate>
+    <DataTemplate DataType="dialogs:SettingsDialogViewModel">
+      <dialogViews:SettingsDialogView />
+    </DataTemplate>
   </Application.DataTemplates>
 
 

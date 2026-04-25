@@ -1,0 +1,83 @@
+<UserControl
+    x:Class="ClearText.Dialogs.SettingsDialogView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enums="clr-namespace:ClearText.Enums"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:vm="clr-namespace:ClearText.Dialogs"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="vm:SettingsDialogViewModel"
+    mc:Ignorable="d">
+
+    <Border
+        MaxWidth="750"
+        MaxHeight="400"
+        Padding="24"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch"
+        Background="#4D4D4D"
+        BoxShadow="0 6 18 0 #40000000"
+        CornerRadius="16">
+
+        <Grid RowDefinitions="Auto, Auto, *, Auto">
+
+            <!--  Header  -->
+            <TextBlock
+                Grid.Row="0"
+                Margin="0,0,0,4"
+                HorizontalAlignment="Center"
+                FontSize="20"
+                FontWeight="SemiBold"
+                Foreground="#FFF"
+                Text="Settings Menu" />
+
+            <!--  Divider  -->
+            <Border
+                Grid.Row="1"
+                Height="1"
+                Margin="0,0,0,8"
+                Background="#000" />
+
+            <!--  Options  -->
+            <StackPanel Grid.Row="2" Spacing="12">
+
+                <TextBlock Text="Autosave Interval (Minutes - Max of 60)" />
+                <NumericUpDown
+                    MaxWidth="400"
+                    HorizontalAlignment="Left"
+                    Maximum="60"
+                    Minimum="1"
+                    Value="{Binding AutoSaveInterval}" />
+
+                <TextBlock Text="Theme" />
+                <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding SelectedTheme}" />
+
+            </StackPanel>
+
+            <!--  Footer  -->
+            <StackPanel
+                Grid.Row="3"
+                HorizontalAlignment="Left"
+                Orientation="Horizontal"
+                Spacing="12">
+                <Button
+                    Grid.Row="3"
+                    Margin="0,16,0,0"
+                    HorizontalAlignment="Left"
+                    Command="{Binding SaveCommand}"
+                    Content="Save" />
+
+                <Button
+                    Grid.Row="3"
+                    Margin="0,16,0,0"
+                    HorizontalAlignment="Left"
+                    Command="{Binding CloseCommand}"
+                    Content="Close" />
+            </StackPanel>
+        </Grid>
+
+    </Border>
+</UserControl>

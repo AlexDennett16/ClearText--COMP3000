@@ -49,23 +49,46 @@ public class GrammarService : BaseService, IGrammarService
 
 
     private async Task StartupAsync()
+{
+    Console.WriteLine("[GrammarService] StartupAsync() called");
+
+    var (pythonExe, workingDir) = LoadPythonFilePath();
+    Console.WriteLine($"[GrammarService] Using Python: {pythonExe}");
+    Console.WriteLine($"[GrammarService] Working directory: {workingDir}");
+
+    var psi = new ProcessStartInfo
     {
-        var psi = new ProcessStartInfo
-        {
-            FileName = LoadPythonFilePath().PythonExe,
-            Arguments = "grammar_server.py",
-            WorkingDirectory = LoadPythonFilePath().WorkingDirectory,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
+        FileName = pythonExe,
+        Arguments = "grammar_server.py",
+        WorkingDirectory = workingDir,
+        UseShellExecute = false,
+        CreateNoWindow = true,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true
+    };
 
-        _pythonProcess = Process.Start(psi);
+    Console.WriteLine("[GrammarService] Starting Python process...");
+    _pythonProcess = Process.Start(psi);
 
-        await WaitForServerAsync();
+    if (_pythonProcess == null)
+        throw new Exception("Failed to start Python process.");
 
-        var channel = GrpcChannel.ForAddress("http://127.0.0.1:50051");
-        _client = new Grammar.GrammarService.GrammarServiceClient(channel);
-    }
+    _pythonProcess.OutputDataReceived += (_, e) => Console.WriteLine("[PYTHON STDOUT] " + e.Data);
+    _pythonProcess.ErrorDataReceived += (_, e) => Console.WriteLine("[PYTHON STDERR] " + e.Data);
+
+    _pythonProcess.BeginOutputReadLine();
+    _pythonProcess.BeginErrorReadLine();
+
+    Console.WriteLine("[GrammarService] Waiting for server...");
+    await WaitForServerAsync();
+    Console.WriteLine("[GrammarService] Server responded to ping.");
+
+    var channel = GrpcChannel.ForAddress("http://127.0.0.1:50051");
+    _client = new Grammar.GrammarService.GrammarServiceClient(channel);
+
+    Console.WriteLine("[GrammarService] gRPC client created.");
+}
+
 
     private async Task WaitForServerAsync()
     {

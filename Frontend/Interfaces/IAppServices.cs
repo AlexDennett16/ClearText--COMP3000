@@ -9,4 +9,5 @@ public interface IAppServices : IBaseServiceInterface
   IPathService PathService { get; }
   IGrammarService GrammarService { get; }
   IDocumentStatsService DocumentStatsService { get; }
+  ISettingsService SettingsService { get; }
 }

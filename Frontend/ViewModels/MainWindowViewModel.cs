@@ -40,7 +40,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         Services = services;
         ToolbarMode = ToolbarMode.Dashboard;
-        Toolbar = new ToolbarViewModel(this);
+        Toolbar = new ToolbarViewModel(services, this);
 
 
         var pageSelection = new PageSelectionViewModel(OpenEditor, Services);

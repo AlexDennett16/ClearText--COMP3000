@@ -8,7 +8,6 @@
     <Grid Background="{DynamicResource DefaultTabBackgroundBrush}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="6*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -19,21 +18,31 @@
 
         <ContentControl
             Grid.Column="1"
+            HorizontalAlignment="Stretch"
             VerticalAlignment="Center"
             Content="{Binding CurrentToolbar}">
             <ContentControl.DataTemplates>
 
                 <DataTemplate DataType="vm:DashboardToolbarViewModel">
-                    <Grid Margin="100,20,20,20">
-                        <TextBox
-                            Height="45"
-                            MinWidth="100"
-                            MaxWidth="800"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            Text="{Binding Parent.SearchText}"
-                            Watermark="Search documents..." />
+                    <Grid HorizontalAlignment="Stretch" ColumnDefinitions="6*,*">
+                        <Grid Grid.Column="0" Margin="20,0">
+                            <TextBox
+                                Height="45"
+                                MinWidth="200"
+                                MaxWidth="600"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                VerticalContentAlignment="Center"
+                                Text="{Binding Parent.SearchText}"
+                                Watermark="Search documents..." />
+                        </Grid>
+                        <Grid Grid.Column="1" Margin="20,0">
+                            <Button
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Command="{Binding Parent.SettingsCommand}"
+                                Content="Settings" />
+                        </Grid>
                     </Grid>
                 </DataTemplate>
 

@@ -11,6 +11,7 @@ public class AppServices(IUiHost host) : BaseService, IAppServices
     public IPathService PathService { get; } = new PathService(host.Window);
     public IGrammarService GrammarService { get; } = new GrammarService();
     public IDocumentStatsService DocumentStatsService { get; } = new DocumentStatsService();
+    public ISettingsService SettingsService { get; } = new SettingsService();
 
     public override void Dispose()
     {

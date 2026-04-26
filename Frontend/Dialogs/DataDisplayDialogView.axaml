@@ -11,60 +11,91 @@
     mc:Ignorable="d">
 
     <Border
-        MaxHeight="400"
         MaxWidth="750"
+        MaxHeight="400"
         Padding="24"
         HorizontalAlignment="Stretch"
         VerticalAlignment="Stretch"
-        CornerRadius="16"
         Background="#4D4D4D"
-        BoxShadow="0 6 18 0 #40000000">
+        BoxShadow="0 6 18 0 #40000000"
+        CornerRadius="16">
 
-        <Grid RowDefinitions="Auto, * , Auto">
+        <Grid RowDefinitions="Auto,*,Auto">
 
-            <!-- Header -->
+            <!--  Header  -->
             <StackPanel Grid.Row="0" Spacing="16">
                 <TextBlock
-                    Text="{Binding Title}"
+                    Margin="0,0,0,4"
+                    HorizontalAlignment="Center"
                     FontSize="20"
                     FontWeight="SemiBold"
                     Foreground="#FFF"
-                    HorizontalAlignment="Center"
-                    Margin="0,0,0,4" />
+                    Text="{Binding Title}" />
 
-                <Border Height="1" Background="#000" Margin="0,0,0,8" />
+                <Border
+                    Height="1"
+                    Margin="0,0,0,8"
+                    Background="#000" />
             </StackPanel>
 
-            <!-- Stats content -->
+            <!--  Stats content  -->
             <StackPanel Grid.Row="1" Spacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="Word Count:" FontSize="16" FontWeight="Bold" Foreground="#FFF" />
-                    <TextBlock Text="{Binding Stats.WordCount}" FontSize="16" Foreground="#FFF" />
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="Bold"
+                        Foreground="#FFF"
+                        Text="Word Count:" />
+                    <TextBlock
+                        FontSize="16"
+                        Foreground="#FFF"
+                        Text="{Binding Stats.WordCount}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="Character Count:" FontSize="16" FontWeight="Bold" Foreground="#FFF" />
-                    <TextBlock Text="{Binding Stats.CharacterCount}" FontSize="16" Foreground="#FFF" />
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="Bold"
+                        Foreground="#FFF"
+                        Text="Character Count:" />
+                    <TextBlock
+                        FontSize="16"
+                        Foreground="#FFF"
+                        Text="{Binding Stats.CharacterCount}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="Flesch-Kincaid Grade Level:" FontSize="16" FontWeight="Bold" Foreground="#FFF" />
-                    <TextBlock Text="{Binding Stats.FleschKincaidGradeLevel}" FontSize="16" Foreground="#FFF" />
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="Bold"
+                        Foreground="#FFF"
+                        Text="Flesch-Kincaid Grade Level:" />
+                    <TextBlock
+                        FontSize="16"
+                        Foreground="#FFF"
+                        Text="{Binding Stats.FleschKincaidGradeLevel}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="Flesch-Kincaid Breakdown:" FontSize="16" FontWeight="Bold" Foreground="#FFF" />
-                    <TextBlock Text="{Binding Stats.FleschKincaidBreakdown}" FontSize="16" Foreground="#FFF" />
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="Bold"
+                        Foreground="#FFF"
+                        Text="Flesch-Kincaid Breakdown:" />
+                    <TextBlock
+                        FontSize="16"
+                        Foreground="#FFF"
+                        Text="{Binding Stats.FleschKincaidBreakdown}" />
                 </StackPanel>
             </StackPanel>
 
-            <!-- Bottom-left button -->
+            <!--  Bottom-left button  -->
             <Button
                 Grid.Row="2"
-                Content="Close"
-                Command="{Binding CloseCommand}"
+                Margin="0,16,0,0"
                 HorizontalAlignment="Left"
-                Margin="0,16,0,0" />
+                Command="{Binding CloseCommand}"
+                Content="Close" />
         </Grid>
     </Border>
 </UserControl>

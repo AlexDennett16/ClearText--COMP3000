@@ -43,17 +43,42 @@
 
             <!--  Options  -->
             <StackPanel Grid.Row="2" Spacing="12">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock VerticalAlignment="Center" Text="Autosave Enabled" />
+                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding AutoSaveEnabled}" />
+                </StackPanel>
 
-                <TextBlock Text="Autosave Interval (Minutes - Max of 60)" />
-                <NumericUpDown
-                    MaxWidth="400"
-                    HorizontalAlignment="Left"
-                    Maximum="60"
-                    Minimum="1"
-                    Value="{Binding AutoSaveInterval}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding AutoSaveEnabled}"
+                        Text="Autosave Interval (Minutes - Max of 60)" />
+                    <NumericUpDown
+                        MaxWidth="400"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding AutoSaveEnabled}"
+                        Maximum="60"
+                        Minimum="1"
+                        Value="{Binding AutoSaveInterval}" />
+                </StackPanel>
 
-                <TextBlock Text="Theme" />
-                <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding SelectedTheme}" />
+
+                <!--  Divider  -->
+                <Border
+                    Grid.Row="1"
+                    Height="1"
+                    Margin="0,0,0,8"
+                    Background="#000" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock VerticalAlignment="Center" Text="Theme" />
+                    <ComboBox
+                        VerticalAlignment="Center"
+                        ItemsSource="{Binding ThemeOptions}"
+                        SelectedItem="{Binding SelectedTheme}" />
+                </StackPanel>
+
 
             </StackPanel>
 

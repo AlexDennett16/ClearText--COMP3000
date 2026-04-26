@@ -28,6 +28,7 @@ public class TextEditorViewModel : ViewModelBase, IDisposable
     private readonly IPathService _storageService;
     private readonly IDialogService _dialogService;
     private readonly IDocumentStatsService _documentStatsService;
+    private readonly ISettingsService _settingsService;
     private readonly System.Timers.Timer _autoSaveTimer;
     private string _documentText = string.Empty;
     private bool _isGrammarChecking;
@@ -59,18 +60,22 @@ public class TextEditorViewModel : ViewModelBase, IDisposable
         _storageService = appServices.PathService;
         _dialogService = appServices.DialogService;
         _documentStatsService = appServices.DocumentStatsService;
+        _settingsService = appServices.SettingsService;
 
         DocumentText = LoadDocxText(filePath);
-
         ReturnCommand = ReactiveCommand.Create(returnCallback);
         SaveCommand = ReactiveCommand.Create(ManualSaveDocument);
         AnalyseGrammarCommand = ReactiveCommand.Create(AnalyseGrammarAction);
         ShowDocumentStatsCommand = ReactiveCommand.Create(ShowDocumentStats);
 
-        _autoSaveTimer = new System.Timers.Timer(TimeSpan.FromMinutes(10).TotalMilliseconds);
+        _autoSaveTimer = new System.Timers.Timer(_settingsService.AutoSaveInterval * 60 * 1000); // Convert minutes to milliseconds
         _autoSaveTimer.Elapsed += AutoSaveDocument;
         _autoSaveTimer.AutoReset = true;
-        _autoSaveTimer.Start();
+
+        if (_settingsService.AutoSaveEnabled)
+        {
+            _autoSaveTimer.Start();
+        }
 
         //Run grammar check on entry to populate squigglies immediately
         AnalyseGrammarAction();
@@ -201,15 +206,16 @@ public class TextEditorViewModel : ViewModelBase, IDisposable
         var stats = _documentStatsService.GetDocumentStats(DocumentText);
         var dialog = new DataDisplayDialogViewModel(stats, "Document Statistics");
 
-
         await _dialogService.ShowAsync(dialog);
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         _autoSaveTimer.Elapsed -= AutoSaveDocument;
         _autoSaveTimer.Stop();
         _autoSaveTimer.Dispose();
         GC.SuppressFinalize(this);
+
+        base.Dispose();
     }
 }

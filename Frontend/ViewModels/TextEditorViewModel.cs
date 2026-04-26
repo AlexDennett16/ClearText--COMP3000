@@ -68,6 +68,7 @@ public class TextEditorViewModel : ViewModelBase, IDisposable
         AnalyseGrammarCommand = ReactiveCommand.Create(AnalyseGrammarAction);
         ShowDocumentStatsCommand = ReactiveCommand.Create(ShowDocumentStats);
 
+        Console.WriteLine($"AutoSaveEnabled: {_settingsService.AutoSaveEnabled}, AutoSaveInterval: {_settingsService.AutoSaveInterval}");
         _autoSaveTimer = new System.Timers.Timer(_settingsService.AutoSaveInterval * 60 * 1000); // Convert minutes to milliseconds
         _autoSaveTimer.Elapsed += AutoSaveDocument;
         _autoSaveTimer.AutoReset = true;

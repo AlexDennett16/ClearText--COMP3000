@@ -1,5 +1,6 @@
 using System;
 using System.Reactive;
+using Avalonia;
 using ClearText.BaseTypes.BaseViewModels;
 using ClearText.Enums;
 using ClearText.Interfaces;
@@ -39,6 +40,10 @@ public class SettingsDialogViewModel : DialogViewModelBase<bool>
             _settings.AutoSaveEnabled = AutoSaveEnabled;
             _settings.AutoSaveInterval = AutoSaveInterval;
             _settings.CurrentTheme = SelectedTheme;
+            _settings.SaveSettings();
+            ((App)Application.Current!).ApplyTheme(SelectedTheme);
+
+
             toastService.CreateAndShowInfoToast("Settings saved");
             Close?.Invoke(true);
         });

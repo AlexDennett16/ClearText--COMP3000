@@ -57,6 +57,7 @@
                         MaxWidth="400"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
+                        FormatString="0"
                         IsVisible="{Binding AutoSaveEnabled}"
                         Maximum="60"
                         Minimum="1"

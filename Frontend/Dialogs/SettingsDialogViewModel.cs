@@ -10,10 +10,10 @@ namespace ClearText.Dialogs;
 public class SettingsDialogViewModel : DialogViewModelBase<bool>
 {
     private readonly ISettingsService _settings;
-    public Array ThemeOptions { get; } = Enum.GetValues(typeof(AppTheme));
+    private Array ThemeOptions { get; } = Enum.GetValues(typeof(AppTheme));
 
-    public int AutoSaveInterval { get; set; }
-    public AppTheme SelectedTheme { get; set; }
+    private int AutoSaveInterval { get; set; }
+    private AppTheme SelectedTheme { get; set; }
 
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
     public ReactiveCommand<Unit, Unit> CloseCommand { get; }
@@ -31,10 +31,9 @@ public class SettingsDialogViewModel : DialogViewModelBase<bool>
             // Apply changes
             _settings.AutoSaveInterval = AutoSaveInterval;
             _settings.CurrentTheme = SelectedTheme;
-
+            toastService.CreateAndShowInfoToast("Settings saved");
             Close?.Invoke(true);
         });
-
 
         CloseCommand = ReactiveCommand.Create(() => Close?.Invoke(false));
     }

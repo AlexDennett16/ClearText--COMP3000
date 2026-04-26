@@ -39,7 +39,7 @@ public class ToolbarViewModel : ViewModelBase
             .WhenAnyValue(x => x.ToolbarMode)
             .Subscribe(SetToolbarMode);
 
-        SettingsCommand = ReactiveCommand.Create(() => CreateSettingsDialog());
+        SettingsCommand = ReactiveCommand.Create(CreateSettingsDialog);
     }
 
     private async void CreateSettingsDialog()

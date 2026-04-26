@@ -11,17 +11,20 @@ using System.IO;
 using System.Net.Http;
 using ClearText.BaseTypes;
 using ClearText.Exceptions;
+using System.Net.NetworkInformation;
 
 namespace ClearText.Services;
 
 public class GrammarService : BaseService, IGrammarService
 {
-
     public bool IsReady { get; private set; }
     public Exception? StartupError { get; private set; }
 
     private Grammar.GrammarService.GrammarServiceClient? _client;
     private Process? _pythonProcess;
+
+    private const int Port = 50051;
+    private const string Address = "http://127.0.0.1:50051";
 
     public GrammarService()
     {
@@ -44,51 +47,80 @@ public class GrammarService : BaseService, IGrammarService
                 Console.WriteLine("GrammarService failed: " + ex);
             }
         });
-
     }
 
-
     private async Task StartupAsync()
-{
-    Console.WriteLine("[GrammarService] StartupAsync() called");
-
-    var (pythonExe, workingDir) = LoadPythonFilePath();
-    Console.WriteLine($"[GrammarService] Using Python: {pythonExe}");
-    Console.WriteLine($"[GrammarService] Working directory: {workingDir}");
-
-    var psi = new ProcessStartInfo
     {
-        FileName = pythonExe,
-        Arguments = "grammar_server.py",
-        WorkingDirectory = workingDir,
-        UseShellExecute = false,
-        CreateNoWindow = true,
-        RedirectStandardOutput = true,
-        RedirectStandardError = true
-    };
+        Console.WriteLine("[GrammarService] StartupAsync() called");
 
-    Console.WriteLine("[GrammarService] Starting Python process...");
-    _pythonProcess = Process.Start(psi);
+        KillExistingPythonServers();
+        EnsurePortFree();
 
-    if (_pythonProcess == null)
-        throw new Exception("Failed to start Python process.");
+        var (pythonExe, workingDir) = LoadPythonFilePath();
+        Console.WriteLine($"[GrammarService] Using Python: {pythonExe}");
+        Console.WriteLine($"[GrammarService] Working directory: {workingDir}");
 
-    _pythonProcess.OutputDataReceived += (_, e) => Console.WriteLine("[PYTHON STDOUT] " + e.Data);
-    _pythonProcess.ErrorDataReceived += (_, e) => Console.WriteLine("[PYTHON STDERR] " + e.Data);
+        var psi = new ProcessStartInfo
+        {
+            FileName = pythonExe,
+            Arguments = "grammar_server.py",
+            WorkingDirectory = workingDir,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
 
-    _pythonProcess.BeginOutputReadLine();
-    _pythonProcess.BeginErrorReadLine();
+        Console.WriteLine("[GrammarService] Starting Python process...");
+        _pythonProcess = Process.Start(psi);
 
-    Console.WriteLine("[GrammarService] Waiting for server...");
-    await WaitForServerAsync();
-    Console.WriteLine("[GrammarService] Server responded to ping.");
+        if (_pythonProcess == null)
+            throw new Exception("Failed to start Python process.");
 
-    var channel = GrpcChannel.ForAddress("http://127.0.0.1:50051");
-    _client = new Grammar.GrammarService.GrammarServiceClient(channel);
+        _pythonProcess.OutputDataReceived += (_, e) => Console.WriteLine("[PYTHON STDOUT] " + e.Data);
+        _pythonProcess.ErrorDataReceived += (_, e) => Console.WriteLine("[PYTHON STDERR] " + e.Data);
 
-    Console.WriteLine("[GrammarService] gRPC client created.");
-}
+        _pythonProcess.BeginOutputReadLine();
+        _pythonProcess.BeginErrorReadLine();
 
+        Console.WriteLine("[GrammarService] Waiting for server...");
+        await WaitForServerAsync();
+        Console.WriteLine("[GrammarService] Server responded to ping.");
+
+        var channel = GrpcChannel.ForAddress(Address);
+        _client = new Grammar.GrammarService.GrammarServiceClient(channel);
+
+        Console.WriteLine("[GrammarService] gRPC client created.");
+    }
+
+    private void KillExistingPythonServers()
+    {
+        Console.WriteLine("[GrammarService] Checking for old Python processes...");
+
+        foreach (var p in Process.GetProcessesByName("python"))
+        {
+            try
+            {
+                if (!p.HasExited)
+                {
+                    Console.WriteLine($"[GrammarService] Killing stale python.exe (PID {p.Id})");
+                    p.Kill(true);
+                }
+            }
+            catch { /* ignore */ }
+        }
+    }
+
+    private void EnsurePortFree()
+    {
+        var props = IPGlobalProperties.GetIPGlobalProperties();
+        var listeners = props.GetActiveTcpListeners();
+
+        if (listeners.Any(l => l.Port == Port))
+        {
+            throw new Exception($"Port {Port} is already in use. A zombie Python process may still be running.");
+        }
+    }
 
     private async Task WaitForServerAsync()
     {
@@ -98,17 +130,18 @@ public class GrammarService : BaseService, IGrammarService
         {
             try
             {
-                using var channel = GrpcChannel.ForAddress("http://127.0.0.1:50051");
+                using var channel = GrpcChannel.ForAddress(Address);
                 await new Grammar.GrammarService.GrammarServiceClient(channel)
                     .PingAsync(new Google.Protobuf.WellKnownTypes.Empty());
 
-                return; //server ready
+                return; // server ready
             }
             catch
             {
                 await Task.Delay(100);
             }
         }
+
         throw new Exception("Python gRPC server did not start in time.");
     }
 
@@ -119,21 +152,12 @@ public class GrammarService : BaseService, IGrammarService
             throw new GrammarServiceNotReadyException();
         }
 
-        // Build the gRPC request
-        var request = new GrammarRequest
-        {
-            Text = text
-        };
-
-        // Call the Python grammar service
         if (_client == null)
-        {
             throw new GrammarServiceUnavailableException(StartupError ?? new Exception("Grammar service client not initialized."));
-        }
 
+        var request = new GrammarRequest { Text = text };
         var reply = await _client.CheckGrammarAsync(request);
 
-        // Convert the response into existing ClearTextResult
         return new ClearTextResult
         {
             Text = reply.CorrectedText,
@@ -187,6 +211,7 @@ public class GrammarService : BaseService, IGrammarService
         {
             _pythonProcess.Kill(entireProcessTree: true);
             _pythonProcess.Dispose();
+            Console.WriteLine("[GrammarService] Python process killed and disposed.");
         }
     }
 }

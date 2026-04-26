@@ -40,8 +40,21 @@
                             <Button
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
-                                Command="{Binding Parent.SettingsCommand}"
-                                Content="Settings" />
+                                Command="{Binding Parent.SettingsCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Path
+                                        Width="20"
+                                        Height="20"
+                                        VerticalAlignment="Center"
+                                        Data="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8zm7.4 3.4c0-.5 0-1-.1-1.5l2.1-1.6-2-3.5-2.5 1a7.7 7.7 0 0 0-2.6-1.5l-.4-2.7h-4l-.4 2.7a7.7 7.7 0 0 0-2.6 1.5l-2.5-1-2 3.5 2.1 1.6c0 .5-.1 1-.1 1.5s0 1 .1 1.5l-2.1 1.6 2 3.5 2.5-1a7.7 7.7 0 0 0 2.6 1.5l.4 2.7h4l.4-2.7a7.7 7.7 0 0 0 2.6-1.5l2.5 1 2-3.5-2.1-1.6c.1-.5.1-1 .1-1.5z"
+                                        Fill="{DynamicResource DefaultTextBrush}"
+                                        Stretch="Uniform" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Foreground="{DynamicResource DefaultTextBrush}"
+                                        Text="Settings" />
+                                </StackPanel>
+                            </Button>
                         </Grid>
                     </Grid>
                 </DataTemplate>

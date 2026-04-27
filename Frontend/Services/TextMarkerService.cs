@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
@@ -54,86 +55,13 @@ namespace ClearText.Services
             }
 
             ctx.EndFigure(false);
-
             return geometry;
         }
 
-        private void AddMarker(int startOffset, int length, Color color, ClearTextError error)
-        {
-            var marker = new TextMarker(startOffset, length, color, error);
-            _markers.Add(marker);
-        }
 
-        internal void ClearMarkers()
-        {
-            _markers.Clear();
-        }
+        internal void ClearMarkers() => _markers.Clear();
 
-        internal void Remove(TextMarker marker)
-        {
-            _markers.Remove(marker);
-        }
-
-        internal List<TextMarker> GetMarkers()
-        {
-            return _markers.ToList();
-        }
-
-        internal void LoadSquigglies(string editorText, IReadOnlyList<ClearTextError> errors)
-        {
-            if (errors.Count == 0)
-                return;
-
-            // Split the editor text into tokens exactly like Python did
-            // (Python uses simple whitespace/punctuation tokenization)
-            var tokens = new List<string>();
-            var tokenOffsets = new List<int>();
-
-            var i = 0;
-
-            while (i < editorText.Length)
-            {
-                // Skip whitespace
-                if (char.IsWhiteSpace(editorText[i]))
-                {
-                    i++;
-                    continue;
-                }
-
-                var start = i;
-
-                // Consume letters/numbers
-                while (i < editorText.Length && char.IsLetterOrDigit(editorText[i]))
-                    i++;
-
-                // If we captured a word
-                if (start != i)
-                {
-                    var word = editorText[start..i];
-                    tokens.Add(word);
-                    tokenOffsets.Add(start);
-                    continue;
-                }
-
-                // Otherwise it's punctuation
-                tokens.Add(editorText[i].ToString());
-                tokenOffsets.Add(i);
-                i++;
-            }
-
-            // Now apply markers using Python's token index
-            foreach (var error in errors)
-            {
-                if (error.Index < 0 || error.Index >= tokens.Count)
-                    continue;
-
-                var charOffset = tokenOffsets[error.Index];
-                var length = tokens[error.Index].Length;
-
-                AddMarker(charOffset, length, Colors.Red, error);
-            }
-        }
-
+        internal List<TextMarker> GetMarkers() => _markers.ToList();
 
         internal TextMarker? GetMarkerAtOffset(int offset)
         {
@@ -142,13 +70,88 @@ namespace ClearText.Services
                 offset <= m.EndOffset);
         }
 
+        private void AddMarker(
+            int startOffset,
+            int length,
+            Color color,
+            ClearTextError error)
+        {
+            _markers.Add(
+                new TextMarker(startOffset, length, color, error)
+            );
+        }
+
+
+        internal void LoadSquigglies(
+            string editorText,
+            IReadOnlyList<string> tokens,
+            IReadOnlyList<ClearTextError> errors)
+        {
+            ClearMarkers();
+
+            // Compute start offsets once
+            var tokenOffsets = new List<int>();
+            var cursor = 0;
+
+            foreach (var token in tokens)
+            {
+                // Skip whitespace
+                while (cursor < editorText.Length &&
+                       char.IsWhiteSpace(editorText[cursor]))
+                {
+                    cursor++;
+                }
+
+                tokenOffsets.Add(cursor);
+                cursor += token.Length;
+            }
+
+            Console.WriteLine("[TextMarkerService] Applying markers:");
+            for (var i = 0; i < tokens.Count; i++)
+            {
+                Console.WriteLine(
+                    $"  Token[{i}] '{tokens[i]}' at offset {tokenOffsets[i]}"
+                );
+            }
+
+            foreach (var error in errors)
+            {
+                if (error.Index < 0 || error.Index >= tokens.Count)
+                {
+                    Console.WriteLine(
+                        $"[TextMarkerService] Invalid index {error.Index}"
+                    );
+                    continue;
+                }
+
+                var start = tokenOffsets[error.Index];
+                var length = tokens[error.Index].Length;
+
+                Console.WriteLine(
+                    $"[TextMarkerService] Marking '{tokens[error.Index]}' " +
+                    $"at {start} length {length}"
+                );
+
+                AddMarker(start, length, Colors.Red, error);
+            }
+        }
+
+        internal void Remove(TextMarker marker)
+        {
+            _markers.Remove(marker);
+        }
+
 
         internal class TextMarker : TextSegment
         {
             public Color Color { get; }
             public ClearTextError Error { get; }
 
-            public TextMarker(int start, int length, Color color, ClearTextError error)
+            public TextMarker(
+                int start,
+                int length,
+                Color color,
+                ClearTextError error)
             {
                 StartOffset = start;
                 Length = length;

@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using ClearText.BaseTypes;
+using ClearText.Constants;
 using ClearText.Interfaces;
+using ClearText.Utilities;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -16,7 +18,7 @@ namespace ClearText.Services;
 
 public class PathService : BaseService, IPathService
 {
-    private readonly string _storagePath = DetermineDefaultPageStoragePath();
+    private readonly string _storagePath = FilePathFinder.GetAppDataPath(FileIOConstants.PagesConfigFile);
     private readonly List<string> _cachedPaths;
     private readonly Window _mainWindow;
     public string LastUsedFolder { get; private set; } = "";
@@ -114,15 +116,6 @@ public class PathService : BaseService, IPathService
         _cachedPaths.Insert(0, path);
 
         Persist();
-    }
-
-
-    private static string DetermineDefaultPageStoragePath()
-    {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var configDir = Path.Combine(appData, "ClearText");
-        Directory.CreateDirectory(configDir);
-        return Path.Combine(configDir, "pages.json");
     }
 
     public List<string?> GetExistingPageNames()

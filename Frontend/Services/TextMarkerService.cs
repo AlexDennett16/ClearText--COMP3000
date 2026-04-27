@@ -61,8 +61,6 @@ namespace ClearText.Services
 
         internal void ClearMarkers() => _markers.Clear();
 
-        internal List<TextMarker> GetMarkers() => _markers.ToList();
-
         internal TextMarker? GetMarkerAtOffset(int offset)
         {
             return _markers.FirstOrDefault(m =>

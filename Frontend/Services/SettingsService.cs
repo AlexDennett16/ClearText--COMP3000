@@ -1,14 +1,15 @@
-using System;
 using System.IO;
 using System.Text.Json;
+using ClearText.Constants;
 using ClearText.Enums;
 using ClearText.Interfaces;
+using ClearText.Utilities;
 
 namespace ClearText.Services;
 
 public class SettingsService : ISettingsService
 {
-    private readonly string _settingsPath = DetermineSettingsPath();
+    private readonly string _settingsPath = FilePathFinder.GetAppDataPath(FileIOConstants.SettingsFile);
     public bool AutoSaveEnabled { get; set; } = true;
     public int AutoSaveInterval { get; set; } = 5;
 
@@ -51,12 +52,11 @@ public class SettingsService : ISettingsService
             var json = File.ReadAllText(_settingsPath);
             var config = JsonSerializer.Deserialize<SettingsConfig>(json);
 
-            if (config != null)
-            {
-                AutoSaveEnabled = config.AutoSaveEnabled;
-                AutoSaveInterval = config.AutoSaveInterval;
-                CurrentTheme = config.CurrentTheme;
-            }
+            if (config == null) return;
+
+            AutoSaveEnabled = config.AutoSaveEnabled;
+            AutoSaveInterval = config.AutoSaveInterval;
+            CurrentTheme = config.CurrentTheme;
         }
         catch
         {
@@ -65,18 +65,10 @@ public class SettingsService : ISettingsService
         }
     }
 
-    private static string DetermineSettingsPath()
-    {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var configDir = Path.Combine(appData, "ClearText");
-        Directory.CreateDirectory(configDir);
-        return Path.Combine(configDir, "settings.json");
-    }
-
     private class SettingsConfig
     {
-        public bool AutoSaveEnabled { get; set; }
-        public int AutoSaveInterval { get; set; }
-        public AppTheme CurrentTheme { get; set; }
+        public bool AutoSaveEnabled { get; init; }
+        public int AutoSaveInterval { get; init; }
+        public AppTheme CurrentTheme { get; init; }
     }
 }

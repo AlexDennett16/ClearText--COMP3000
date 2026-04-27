@@ -7,11 +7,11 @@ using System.Linq;
 using ClearTextError = ClearText.DataObjects.ClearTextError;
 using System.Diagnostics;
 using System;
-using System.IO;
 using System.Net.Http;
 using ClearText.BaseTypes;
 using ClearText.Exceptions;
-using System.Net.NetworkInformation;
+using ClearText.Utilities;
+using ClearText.Constants;
 
 namespace ClearText.Services;
 
@@ -23,8 +23,7 @@ public class GrammarService : BaseService, IGrammarService
     private Grammar.GrammarService.GrammarServiceClient? _client;
     private Process? _pythonProcess;
 
-    private const int Port = 50051;
-    private const string Address = "http://127.0.0.1:50051";
+
 
     public GrammarService()
     {
@@ -53,10 +52,10 @@ public class GrammarService : BaseService, IGrammarService
     {
         Console.WriteLine("[GrammarService] StartupAsync() called");
 
-        KillExistingPythonServers();
-        EnsurePortFree();
+        PythonCleanUp.KillExistingPythonServers();
+        PythonCleanUp.EnsurePortFree();
 
-        var (pythonExe, workingDir) = LoadPythonFilePath();
+        var (pythonExe, workingDir) = FilePathFinder.LoadPythonFilePath();
         Console.WriteLine($"[GrammarService] Using Python: {pythonExe}");
         Console.WriteLine($"[GrammarService] Working directory: {workingDir}");
 
@@ -72,11 +71,7 @@ public class GrammarService : BaseService, IGrammarService
         };
 
         Console.WriteLine("[GrammarService] Starting Python process...");
-        _pythonProcess = Process.Start(psi);
-
-        if (_pythonProcess == null)
-            throw new Exception("Failed to start Python process.");
-
+        _pythonProcess = Process.Start(psi) ?? throw new Exception("Failed to start Python process.");
         _pythonProcess.OutputDataReceived += (_, e) => Console.WriteLine("[PYTHON STDOUT] " + e.Data);
         _pythonProcess.ErrorDataReceived += (_, e) => Console.WriteLine("[PYTHON STDERR] " + e.Data);
 
@@ -87,42 +82,14 @@ public class GrammarService : BaseService, IGrammarService
         await WaitForServerAsync();
         Console.WriteLine("[GrammarService] Server responded to ping.");
 
-        var channel = GrpcChannel.ForAddress(Address);
+        var channel = GrpcChannel.ForAddress(PythonConstants.PythonAddress);
         _client = new Grammar.GrammarService.GrammarServiceClient(channel);
 
         Console.WriteLine("[GrammarService] gRPC client created.");
     }
 
-    private void KillExistingPythonServers()
-    {
-        Console.WriteLine("[GrammarService] Checking for old Python processes...");
 
-        foreach (var p in Process.GetProcessesByName("python"))
-        {
-            try
-            {
-                if (!p.HasExited)
-                {
-                    Console.WriteLine($"[GrammarService] Killing stale python.exe (PID {p.Id})");
-                    p.Kill(true);
-                }
-            }
-            catch { /* ignore */ }
-        }
-    }
-
-    private void EnsurePortFree()
-    {
-        var props = IPGlobalProperties.GetIPGlobalProperties();
-        var listeners = props.GetActiveTcpListeners();
-
-        if (listeners.Any(l => l.Port == Port))
-        {
-            throw new Exception($"Port {Port} is already in use. A zombie Python process may still be running.");
-        }
-    }
-
-    private async Task WaitForServerAsync()
+    private static async Task WaitForServerAsync()
     {
         using var http = new HttpClient();
 
@@ -130,7 +97,7 @@ public class GrammarService : BaseService, IGrammarService
         {
             try
             {
-                using var channel = GrpcChannel.ForAddress(Address);
+                using var channel = GrpcChannel.ForAddress(PythonConstants.PythonAddress);
                 await new Grammar.GrammarService.GrammarServiceClient(channel)
                     .PingAsync(new Google.Protobuf.WellKnownTypes.Empty());
 
@@ -155,63 +122,54 @@ public class GrammarService : BaseService, IGrammarService
         if (_client == null)
             throw new GrammarServiceUnavailableException(StartupError ?? new Exception("Grammar service client not initialized."));
 
-        var request = new GrammarRequest { Text = text };
-        var reply = await _client.CheckGrammarAsync(request);
+
+        var tokens = TextTokeniser.TokeniseOnWhitespace(text);
+
+        var reply = await _client.CheckGrammarAsync(
+            new GrammarRequest
+            {
+                Tokens = { tokens.Select(t => t.Text) }
+            }
+        );
+
+        /* Demo Code*/
+        Console.WriteLine("[GrammarService] Tokens returned from Python:");
+        for (var i = 0; i < reply.Tokens.Count; i++)
+        {
+            Console.WriteLine($"  [{i}] '{reply.Tokens[i]}'");
+        }
+
+        Console.WriteLine("[GrammarService] Errors returned from Python:");
+        foreach (var e in reply.Errors)
+        {
+            Console.WriteLine(
+                $"  Type={e.Type}, Token='{e.Token}', Index={e.Index}, Suggestions=[{string.Join(", ", e.Suggestions)}]"
+            );
+        }
+        /* Demo Code*/
+
 
         return new ClearTextResult
         {
             Text = reply.CorrectedText,
-            Errors = reply.Errors.Select(e => new ClearTextError
+            Errors = [.. reply.Errors.Select(e => new ClearTextError
             {
                 Type = e.Type,
                 Token = e.Token,
                 Index = e.Index,
-                Suggestions = e.Suggestions.ToList()
-            }).ToList(),
+                Suggestions = [.. e.Suggestions]
+            })],
             Tokens = [.. reply.Tokens]
+
+
         };
-    }
-
-    private static (string PythonExe, string WorkingDirectory) LoadPythonFilePath()
-    {
-        var baseDir = AppContext.BaseDirectory;
-        var projectRoot = FindDirectoryUpwards(baseDir, "ClearText--COMP3000")
-                          ?? throw new DirectoryNotFoundException("Could not locate project root.");
-
-        var pythonPath = Path.Combine(projectRoot, ".venv", "Scripts", "python.exe");
-        if (!File.Exists(pythonPath))
-            throw new FileNotFoundException($"Python executable not found at: {pythonPath}");
-
-        var backendDir = Path.Combine(projectRoot, "Backend");
-        if (!Directory.Exists(backendDir))
-            throw new DirectoryNotFoundException($"Backend directory not found at: {backendDir}");
-
-        return (pythonPath, backendDir);
-    }
-
-    private static string? FindDirectoryUpwards(string startDir, string targetFolderName)
-    {
-        var dir = new DirectoryInfo(startDir);
-
-        while (dir != null)
-        {
-            var candidate = Path.Combine(dir.FullName, targetFolderName);
-            if (Directory.Exists(candidate))
-                return candidate;
-
-            dir = dir.Parent;
-        }
-
-        return null;
     }
 
     public override void Dispose()
     {
-        if (_pythonProcess is { HasExited: false })
-        {
-            _pythonProcess.Kill(entireProcessTree: true);
-            _pythonProcess.Dispose();
-            Console.WriteLine("[GrammarService] Python process killed and disposed.");
-        }
+        if (_pythonProcess is not { HasExited: false }) return;
+        _pythonProcess.Kill(entireProcessTree: true);
+        _pythonProcess.Dispose();
+        Console.WriteLine("[GrammarService] Python process killed and disposed.");
     }
 }

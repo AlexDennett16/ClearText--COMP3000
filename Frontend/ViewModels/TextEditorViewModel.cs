@@ -19,7 +19,7 @@ using WordText = DocumentFormat.OpenXml.Wordprocessing.Text;
 
 namespace ClearText.ViewModels;
 
-public class TextEditorViewModel : ViewModelBase, IDisposable
+public class TextEditorViewModel : ViewModelBase
 {
     private readonly string _filePath;
     private readonly List<WordRun> _originalRuns = [];
@@ -28,7 +28,6 @@ public class TextEditorViewModel : ViewModelBase, IDisposable
     private readonly IPathService _storageService;
     private readonly IDialogService _dialogService;
     private readonly IDocumentStatsService _documentStatsService;
-    private readonly ISettingsService _settingsService;
     private readonly System.Timers.Timer _autoSaveTimer;
     private string _documentText = string.Empty;
     private bool _isGrammarChecking;
@@ -45,6 +44,12 @@ public class TextEditorViewModel : ViewModelBase, IDisposable
     public ReactiveCommand<Unit, Task> ShowDocumentStatsCommand { get; }
 
     private IReadOnlyList<ClearTextError>? _errors = [];
+    private IReadOnlyList<string> _tokens = [];
+    public IReadOnlyList<string> Tokens
+    {
+        get => _tokens;
+        private set => this.RaiseAndSetIfChanged(ref _tokens, value);
+    }
 
     public IReadOnlyList<ClearTextError>? Errors
     {
@@ -60,7 +65,7 @@ public class TextEditorViewModel : ViewModelBase, IDisposable
         _storageService = appServices.PathService;
         _dialogService = appServices.DialogService;
         _documentStatsService = appServices.DocumentStatsService;
-        _settingsService = appServices.SettingsService;
+        var settingsService = appServices.SettingsService;
 
         DocumentText = LoadDocxText(filePath);
         ReturnCommand = ReactiveCommand.Create(returnCallback);
@@ -68,12 +73,12 @@ public class TextEditorViewModel : ViewModelBase, IDisposable
         AnalyseGrammarCommand = ReactiveCommand.Create(AnalyseGrammarAction);
         ShowDocumentStatsCommand = ReactiveCommand.Create(ShowDocumentStats);
 
-        Console.WriteLine($"AutoSaveEnabled: {_settingsService.AutoSaveEnabled}, AutoSaveInterval: {_settingsService.AutoSaveInterval}");
-        _autoSaveTimer = new System.Timers.Timer(_settingsService.AutoSaveInterval * 60 * 1000); // Convert minutes to milliseconds
+        Console.WriteLine($"AutoSaveEnabled: {settingsService.AutoSaveEnabled}, AutoSaveInterval: {settingsService.AutoSaveInterval}");
+        _autoSaveTimer = new System.Timers.Timer(settingsService.AutoSaveInterval * 60 * 1000); // Convert minutes to milliseconds
         _autoSaveTimer.Elapsed += AutoSaveDocument;
         _autoSaveTimer.AutoReset = true;
 
-        if (_settingsService.AutoSaveEnabled)
+        if (settingsService.AutoSaveEnabled)
         {
             _autoSaveTimer.Start();
         }
@@ -179,11 +184,11 @@ public class TextEditorViewModel : ViewModelBase, IDisposable
                 _toastService.CreateAndShowInfoToast("Analyzing grammar...");
 
                 var sw = Stopwatch.StartNew();
-                //var payload = JsonSerializer.Serialize(new { text = DocumentText });
-                var response = await _grammarService.CheckGrammarAsync(DocumentText); //Just send text not JSON?
+                var response = await _grammarService.CheckGrammarAsync(DocumentText);
                 sw.Stop();
 
                 Errors = response?.Errors;
+                Tokens = response?.Tokens ?? [];
                 _toastService.CreateAndShowInfoToast($"Grammar analysis took {sw.ElapsedMilliseconds}ms");
             }
             catch (Exception e)

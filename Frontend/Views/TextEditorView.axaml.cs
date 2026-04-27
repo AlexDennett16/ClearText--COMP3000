@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -8,6 +9,7 @@ using Avalonia.ReactiveUI;
 using ClearText.Constants;
 using ClearText.DataObjects;
 using ClearText.Services;
+using ClearText.Utilities;
 using ClearText.ViewModels;
 using ReactiveUI;
 using static ClearText.Services.TextMarkerService;
@@ -61,7 +63,7 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         if (logical == null)
             return;
 
-        int offset = Editor.Document.GetOffset(logical.Value.Line, logical.Value.Column);
+        var offset = Editor.Document.GetOffset(logical.Value.Line, logical.Value.Column);
 
         var marker = _markerService.GetMarkerAtOffset(offset);
         if (marker != null)
@@ -89,57 +91,6 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         flyout.ShowAt(Editor, true);
     }
 
-    private void HandleDuplicatePunctuation(string suggestion)
-    {
-        // Only do the expansion for duplicate punctuation errors
-
-
-        if (_activeMarker != null)
-        {
-            var start = _activeMarker.StartOffset;
-            var end = start + _activeMarker.Length;
-
-            // Expand left
-            while (start > 0)
-            {
-                char c = Editor.Document.GetCharAt(start - 1);
-                if (!char.IsPunctuation(c))
-                    break;
-                start--;
-            }
-
-            // Expand right
-            while (end < Editor.Document.TextLength)
-            {
-                char c = Editor.Document.GetCharAt(end);
-                if (!char.IsPunctuation(c))
-                    break;
-                end++;
-            }
-
-            var length = end - start;
-
-            Editor.Document.Replace(start, length, suggestion);
-            RemoveMarkersInRange(start, end);
-        }
-    }
-
-    private void RemoveMarkersInRange(int start, int end)
-    {
-        var markers = _markerService.GetMarkers();
-
-        foreach (var marker in markers)
-        {
-            var mStart = marker.StartOffset;
-            var mEnd = marker.StartOffset + marker.Length;
-
-            var overlaps = !(mEnd <= start || mStart >= end);
-
-            if (overlaps)
-                _markerService.Remove(marker);
-        }
-    }
-
     private void ApplySuggestion(string suggestion)
     {
         if (ViewModel == null || _activeMarker == null)
@@ -151,18 +102,11 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
             suggestions[0] == ClearTextErrorConstants.NoSuggestions)
             return;
 
-        if (_activeMarker.Error.Type == ClearTextErrorConstants.DuplicatePunctuation)
-        {
-            HandleDuplicatePunctuation(suggestion);
-        }
-        else
-        {
-            Editor.Document.Replace(
-                _activeMarker.StartOffset,
-                _activeMarker.Length,
-                suggestion
-            );
-        }
+        Editor.Document.Replace(
+            _activeMarker.StartOffset,
+            _activeMarker.Length,
+            suggestion
+        );
 
         _markerService.Remove(_activeMarker);
         Editor.TextArea.TextView.Redraw();
@@ -181,8 +125,21 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
 
     private void LoadSquigglies(TextEditorViewModel vm)
     {
+
+        var text = Editor.Document.Text;
+
+        var tokens = TextTokeniser.TokeniseOnWhitespace(text)
+            .Select(t => t.Text)
+            .ToList();
+
+
         _markerService.ClearMarkers();
-        _markerService.LoadSquigglies(Editor.Document.Text, vm.Errors ?? []);
+        _markerService.LoadSquigglies(
+        text,
+        tokens,
+        vm.Errors ?? []
+        );
+
         Editor.TextArea.TextView.Redraw();
     }
 }

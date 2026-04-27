@@ -1,7 +1,7 @@
+import re
 from functools import lru_cache
 from typing import List, Dict
 from collections import defaultdict
-
 from ..nlp.corporaLoader import load_corpora
 from nltk.metrics import edit_distance
 from wordfreq import zipf_frequency
@@ -25,15 +25,40 @@ def freq_cached(word: str) -> float:
 
 
 def passes_prefilters(token: str, word: str) -> bool:
+    # First-letter heuristic
     return token[0].lower() == word[0].lower()
+
+
+# Matches the case pattern of the original to the suggestion - either all caps or first letter
+def match_case(original: str, suggestion: str) -> str:
+    if original.isupper():
+        return suggestion.upper()
+    if original[0].isupper():
+        return suggestion.capitalize()
+    return suggestion.lower()
+
+
+# Replaces the alphabetic core of the token with the corrected word, preserving punctuation in suggestion
+def replace_core_preserve_punctuation(token: str, corrected_core: str) -> str:
+    """
+    Replaces the alphabetic core of `token` with `corrected_core`,
+    preserving leading and trailing punctuation.
+    """
+    match = re.match(r"(^[^a-zA-Z]*)([a-zA-Z]+)([^a-zA-Z]*$)", token)
+    if not match:
+        # Fallback: replace entire token
+        return corrected_core
+
+    prefix, _, suffix = match.groups()
+    return f"{prefix}{corrected_core}{suffix}"
 
 
 def suggest_corrections(token: str, max_suggestions: int = 3):
     candidates = []
-    token_lowerLen = len(token)
+    token_len = len(token)
     token_lower = token.lower()
 
-    for length in range(token_lowerLen - 2, token_lowerLen + 3):
+    for length in range(token_len - 2, token_len + 3):
         for word in WORD_BUCKETS.get(length, []):
             if not passes_prefilters(token, word):
                 continue
@@ -50,26 +75,41 @@ def detect_spelling_errors(tokens: List[str]) -> List[Dict]:
     errors = []
 
     for i, token in enumerate(tokens):
-        if not token.isalpha() or len(token) < 2:
+        # Extract alphabetic core
+        core = re.sub(r"[^a-zA-Z]", "", token)
+        if len(core) < 2:
             continue
 
-        token_lower = token.lower()
+        core_lower = core.lower()
 
-        if token_lower in WORD_SET:
+        # Correct word – no error
+        if core_lower in WORD_SET:
             continue
 
-        # Optional plural tolerance
-        if token_lower.endswith("s") and token_lower[:-1] in WORD_SET:
+        # Plural tolerance (e.g. "things" but not "thingss")
+        if (
+            core_lower.endswith("s")
+            and not core_lower.endswith("ss")
+            and core_lower[:-1] in WORD_SET
+        ):
             continue
 
-        if suggestions := suggest_corrections(token):
-            errors.append(
-                {
-                    "type": "spelling",
-                    "token": token,
-                    "index": i,
-                    "suggestions": suggestions,
-                }
-            )
+        raw_suggestions = suggest_corrections(core_lower)
+        if not raw_suggestions:
+            continue
+
+        suggestions = [
+            replace_core_preserve_punctuation(token, match_case(core, suggestion))
+            for suggestion in raw_suggestions
+        ]
+
+        errors.append(
+            {
+                "type": "spelling",
+                "token": token,
+                "index": i,
+                "suggestions": suggestions,
+            }
+        )
 
     return errors

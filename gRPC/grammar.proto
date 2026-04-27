@@ -18,7 +18,7 @@ message ClearTextError {
 // Request message
 // -----------------------------
 message GrammarRequest {
-  string text = 1;
+  repeated string tokens = 1;
 }
 
 // -----------------------------

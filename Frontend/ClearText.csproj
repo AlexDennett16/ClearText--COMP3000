@@ -33,6 +33,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
     <PackageReference Include="System.IO.Packaging" Version="8.0.1" />
     <Protobuf Include="..\gRPC\grammar.proto" GrpcServices="Client" ProtoRoot="..\gRPC" />
   </ItemGroup>

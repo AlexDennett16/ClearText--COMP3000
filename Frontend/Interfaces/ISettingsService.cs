@@ -8,5 +8,4 @@ public interface ISettingsService
     int AutoSaveInterval { get; set; }
     AppTheme CurrentTheme { get; set; }
     void SaveSettings();
-    void LoadSettings();
 }

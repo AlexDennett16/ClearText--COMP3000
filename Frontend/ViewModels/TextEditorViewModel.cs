@@ -57,15 +57,22 @@ public class TextEditorViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _errors, value);
     }
 
-    public TextEditorViewModel(string filePath, Action returnCallback, IAppServices appServices)
+    public TextEditorViewModel(
+        string filePath,
+        Action returnCallback,
+        IToastService toastService,
+        IGrammarService grammarService,
+        IPathService storageService,
+        IDialogService dialogService,
+        IDocumentStatsService documentStatsService,
+        ISettingsService settingsService)
     {
         _filePath = filePath;
-        _toastService = appServices.ToastService;
-        _grammarService = appServices.GrammarService;
-        _storageService = appServices.PathService;
-        _dialogService = appServices.DialogService;
-        _documentStatsService = appServices.DocumentStatsService;
-        var settingsService = appServices.SettingsService;
+        _toastService = toastService;
+        _grammarService = grammarService;
+        _storageService = storageService;
+        _dialogService = dialogService;
+        _documentStatsService = documentStatsService;
 
         DocumentText = LoadDocxText(filePath);
         ReturnCommand = ReactiveCommand.Create(returnCallback);

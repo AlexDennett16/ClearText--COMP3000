@@ -5,7 +5,6 @@
     xmlns:baseViews="clr-namespace:ClearText.BaseTypes.BaseViews"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:views="clr-namespace:ClearText.Views"
     xmlns:vm="clr-namespace:ClearText.ViewModels"
     x:Name="RootWindow"
     Title="ClearText"
@@ -20,7 +19,7 @@
         </Grid.RowDefinitions>
 
         <!--  Toolbar  -->
-        <views:ToolbarView Grid.Row="0" DockPanel.Dock="Top" DataContext="{Binding Toolbar}" />
+        <ContentControl Grid.Row="0 " Content="{Binding ToolbarViewModel}" />
 
         <!--  Main content area  -->
         <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}" />
@@ -31,7 +30,7 @@
             Margin="16"
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
-            DataContext="{Binding Services.ToastService}" />
+            DataContext="{Binding ToastService}" />
 
         <!--  Dialog overlay  -->
         <Border
@@ -48,4 +47,3 @@
 
     </Grid>
 </Window>
-

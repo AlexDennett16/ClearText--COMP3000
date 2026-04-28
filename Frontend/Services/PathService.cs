@@ -25,9 +25,9 @@ public class PathService : BaseService, IPathService
     public event Action? PagePathsChanged;
     public IReadOnlyList<string> PageFilePaths => _cachedPaths;
 
-    public PathService(Window window)
+    public PathService(IUiHost host)
     {
-        _mainWindow = window;
+        _mainWindow = host.Window;
         _cachedPaths = LoadOrCreate();
     }
 

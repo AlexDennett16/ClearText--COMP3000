@@ -42,12 +42,15 @@ public class PageSelectionViewModel : ViewModelBase
         }
     }
 
-    public PageSelectionViewModel(Action<string> openEditorCallback, IAppServices services)
+    public PageSelectionViewModel(Action<string> openEditorCallback,
+        IToastService toastService,
+        IPathService pathService,
+        IDialogService dialogService)
     {
-        _toastService = services.ToastService;
+        _toastService = toastService;
+        _pathService = pathService;
+        _dialogService = dialogService;
         _openEditor = openEditorCallback;
-        _pathService = services.PathService;
-        _dialogService = services.DialogService;
 
         RequestNewPageName = new Interaction<Unit, string?>();
 

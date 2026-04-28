@@ -1,7 +1,7 @@
 using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ClearText.BaseTypes.BaseViewModels;
-using ClearText.Enums;
 using ClearText.Interfaces;
 using ClearText.ViewModels.Toolbar;
 using ReactiveUI;
@@ -10,7 +10,13 @@ namespace ClearText.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    public IAppServices Services { get; }
+    private CompositeDisposable _navigationScope = [];
+    private readonly Func<string, Action, TextEditorViewModel> _editorFactory;
+    private readonly Func<Action<string>, PageSelectionViewModel> _pageSelectionFactory;
+    private readonly Func<DashboardToolbarViewModel> _dashboardToolbarFactory;
+    private readonly Func<string, EditorToolbarViewModel> _editorToolbarFactory;
+    public IToastService ToastService { get; }
+
     private ViewModelBase? _currentViewModel;
 
     public ViewModelBase CurrentViewModel
@@ -26,42 +32,82 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private ToolbarMode _toolbarMode;
+    private ViewModelBase? _toolbarViewModel;
 
-    public ToolbarMode ToolbarMode
+    public ViewModelBase ToolbarViewModel
     {
-        get => _toolbarMode;
-        set => this.RaiseAndSetIfChanged(ref _toolbarMode, value);
+        get => _toolbarViewModel ?? throw new InvalidOperationException("ToolbarViewModel is not set");
+        set
+        {
+            if (_toolbarViewModel is IDisposable disposable)
+                disposable.Dispose();
+
+
+            this.RaiseAndSetIfChanged(ref _toolbarViewModel, value);
+        }
     }
 
-    public ToolbarViewModel Toolbar { get; }
-
-    public MainWindowViewModel(IAppServices services)
+    public MainWindowViewModel(
+        Func<string, Action, TextEditorViewModel> editorFactory,
+        Func<Action<string>, PageSelectionViewModel> pageSelectionFactory,
+        Func<DashboardToolbarViewModel> dashboardToolbarFactory,
+        Func<string, EditorToolbarViewModel> editorToolbarFactory,
+        IToastService toastService
+        )
     {
-        Services = services;
-        ToolbarMode = ToolbarMode.Dashboard;
-        Toolbar = new ToolbarViewModel(services, this);
+        _editorFactory = editorFactory;
+        _pageSelectionFactory = pageSelectionFactory;
+        _dashboardToolbarFactory = dashboardToolbarFactory;
+        _editorToolbarFactory = editorToolbarFactory;
+        ToastService = toastService;
 
-
-        var pageSelection = new PageSelectionViewModel(OpenEditor, Services);
+        ToolbarViewModel = _dashboardToolbarFactory();
+        var pageSelection = _pageSelectionFactory(OpenEditor);
         CurrentViewModel = pageSelection;
 
+        ResetScope();
+        WireDashboardSearch(
+            (DashboardToolbarViewModel)ToolbarViewModel,
+            pageSelection);
 
-        Toolbar.WhenAnyValue(x => x.SearchText)
-            .Throttle(TimeSpan.FromMilliseconds(200))
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(text => pageSelection.FilterText = text);
     }
 
     private void OpenEditor(string filePath)
     {
-        ToolbarMode = ToolbarMode.Editor;
-        CurrentViewModel = new TextEditorViewModel(filePath, ReturnToMain, Services);
+        ResetScope();
+
+
+        ToolbarViewModel = _editorToolbarFactory(filePath);
+        CurrentViewModel = _editorFactory(filePath, ReturnToMain);
     }
 
     private void ReturnToMain()
     {
-        ToolbarMode = ToolbarMode.Dashboard;
-        CurrentViewModel = new PageSelectionViewModel(OpenEditor, Services);
+        ResetScope();
+
+
+        ToolbarViewModel = _dashboardToolbarFactory();
+        CurrentViewModel = _pageSelectionFactory(OpenEditor);
+
+        WireDashboardSearch((DashboardToolbarViewModel)ToolbarViewModel, (PageSelectionViewModel)CurrentViewModel);
+    }
+
+    //Ensure all listeners are disposed of when navigating between pages and editors to prevent memory leaks and unintended behavior.
+    private void ResetScope()
+    {
+        _navigationScope.Dispose();
+        _navigationScope = [];
+    }
+
+    private void WireDashboardSearch(
+        DashboardToolbarViewModel toolbar,
+        PageSelectionViewModel pageSelection)
+    {
+        toolbar
+            .WhenAnyValue(x => x.SearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(text => pageSelection.FilterText = text)
+            .DisposeWith(_navigationScope);
     }
 }

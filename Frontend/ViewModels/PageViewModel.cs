@@ -31,7 +31,10 @@ public class PageViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
 
 
-    public PageViewModel(string filePath, Action<string> openEditorCallback, Action renameCallback,
+    public PageViewModel(
+        string filePath,
+        Action<string> openEditorCallback,
+        Action renameCallback,
         Action deleteCallback)
 
     {

@@ -12,7 +12,6 @@ public class SettingsService : ISettingsService
     private readonly string _settingsPath = FilePathFinder.GetAppDataPath(FileIOConstants.SettingsFile);
     public bool AutoSaveEnabled { get; set; } = true;
     public int AutoSaveInterval { get; set; } = 5;
-
     public AppTheme CurrentTheme { get; set; } = AppTheme.Dark;
 
     public SettingsService()

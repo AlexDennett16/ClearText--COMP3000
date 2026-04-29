@@ -8,9 +8,9 @@ using DocumentFormat.OpenXml.Packaging;
 using System.Linq;
 using ClearText.Interfaces;
 using System.Diagnostics;
-using ClearText.Dialogs;
 using System.Threading.Tasks;
 using ClearText.DataObjects;
+using ClearText.DialogFactoriesInterfaces;
 
 // Explicit OpenXML aliases to avoid collisions with avalonia controls
 using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
@@ -28,6 +28,7 @@ public class TextEditorViewModel : ViewModelBase
     private readonly IPathService _storageService;
     private readonly IDialogService _dialogService;
     private readonly IDocumentStatsService _documentStatsService;
+    private readonly IDataDisplayDialogFactory _dataDisplayDialogFactory;
     private readonly System.Timers.Timer _autoSaveTimer;
     private string _documentText = string.Empty;
     private bool _isGrammarChecking;
@@ -65,7 +66,8 @@ public class TextEditorViewModel : ViewModelBase
         IPathService storageService,
         IDialogService dialogService,
         IDocumentStatsService documentStatsService,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        IDataDisplayDialogFactory dataDisplayDialogFactory)
     {
         _filePath = filePath;
         _toastService = toastService;
@@ -73,7 +75,7 @@ public class TextEditorViewModel : ViewModelBase
         _storageService = storageService;
         _dialogService = dialogService;
         _documentStatsService = documentStatsService;
-
+        _dataDisplayDialogFactory = dataDisplayDialogFactory;
         DocumentText = LoadDocxText(filePath);
         ReturnCommand = ReactiveCommand.Create(returnCallback);
         SaveCommand = ReactiveCommand.Create(ManualSaveDocument);
@@ -217,8 +219,7 @@ public class TextEditorViewModel : ViewModelBase
     private async Task ShowDocumentStats()
     {
         var stats = _documentStatsService.GetDocumentStats(DocumentText);
-        var dialog = new DataDisplayDialogViewModel(stats, "Document Statistics");
-
+        var dialog = _dataDisplayDialogFactory.Create(stats, "Document Statistics");
         await _dialogService.ShowAsync(dialog);
     }
 

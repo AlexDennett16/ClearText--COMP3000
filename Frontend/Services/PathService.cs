@@ -10,15 +10,12 @@ using ClearText.BaseTypes;
 using ClearText.Constants;
 using ClearText.Interfaces;
 using ClearText.Utilities;
-using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace ClearText.Services;
 
 public class PathService : BaseService, IPathService
 {
-    private readonly string _storagePath = FilePathFinder.GetAppDataPath(FileIOConstants.PagesConfigFile);
+    private readonly string _storagePath;
     private readonly List<string> _cachedPaths;
     private readonly Window _mainWindow;
     public string LastUsedFolder { get; private set; } = "";
@@ -28,11 +25,14 @@ public class PathService : BaseService, IPathService
     public PathService(IUiHost host)
     {
         _mainWindow = host.Window;
+        _storagePath = FilePathFinder.GetAppDataPath(FileIOConstants.PagesConfigFile);
+
         _cachedPaths = LoadOrCreate();
     }
 
     private List<string> LoadOrCreate()
     {
+
         if (!File.Exists(_storagePath))
         {
             var defaultConfig = new PageConfig
@@ -77,7 +77,7 @@ public class PathService : BaseService, IPathService
             return;
 
         _cachedPaths.Insert(0, path);
-        CreateDocument(path);
+        DocumentCreator.CreateDocument(path);
         Persist();
     }
 
@@ -100,14 +100,6 @@ public class PathService : BaseService, IPathService
             _cachedPaths[index] = newPath;
 
         Persist();
-    }
-
-    public static void CreateDocument(string filePath)
-    {
-        using var doc = WordprocessingDocument.Create(filePath, WordprocessingDocumentType.Document);
-        var mainPart = doc.AddMainDocumentPart();
-        mainPart.Document = new Document(new Body());
-        mainPart.Document.Save();
     }
 
     public void TouchPage(string path)

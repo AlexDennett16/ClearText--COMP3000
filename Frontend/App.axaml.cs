@@ -3,12 +3,16 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
+using ClearText.DialogFactories;
+using ClearText.DialogFactoriesInterfaces;
+using ClearText.Dialogs;
 using ClearText.Enums;
 using ClearText.Interfaces;
 using ClearText.Services;
 using ClearText.ViewModels;
 using ClearText.ViewModels.Toolbar;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ClearText;
 
@@ -48,7 +52,14 @@ public partial class App : Application
             services.AddTransient<DashboardToolbarViewModel>();
             services.AddTransient<EditorToolbarViewModel>();
 
-            // Factories
+            //Dialogs
+            services.AddTransient<SettingsDialogViewModel>();
+            services.AddTransient<StringDialogViewModel>();
+            services.AddTransient<DataDisplayDialogViewModel>();
+            services.AddTransient<CreateNewDocumentDialogViewModel>();
+
+
+            // ViewModel Factories
             services.AddSingleton<Func<string, Action, TextEditorViewModel>>(sp =>
                 (filePath, close) =>
                     ActivatorUtilities.CreateInstance<TextEditorViewModel>(
@@ -68,6 +79,11 @@ public partial class App : Application
                     ActivatorUtilities.CreateInstance<EditorToolbarViewModel>(
                         sp, filePath)
             );
+
+            // Dialog Factories
+            services.AddSingleton<ICreateNewDocumentDialogFactory, CreateNewDocumentDialogFactory>();
+            services.AddSingleton<IStringDialogFactory, StringDialogFactory>();
+            services.AddSingleton<IDataDisplayDialogFactory, DataDisplayDialogFactory>();
 
             Services = services.BuildServiceProvider();
 

@@ -47,7 +47,8 @@ public class GrammarService : BaseService, IGrammarService, IPythonStartupTask
         }
 
         if (_client == null)
-            throw new GrammarServiceUnavailableException(StartupError ?? new Exception("Grammar service client not initialized."));
+            throw new GrammarServiceUnavailableException(StartupError ??
+                                                         new Exception("Grammar service client not initialized."));
 
 
         var tokens = TextTokeniser.TokeniseOnWhitespace(text);
@@ -63,20 +64,23 @@ public class GrammarService : BaseService, IGrammarService, IPythonStartupTask
         return new ClearTextResult
         {
             Text = reply.CorrectedText,
-            Errors = [.. reply.Errors.Select(e => new ClearTextError
-            {
-                Type = e.Type,
-                Token = e.Token,
-                Index = e.Index,
-                Suggestions = [.. e.Suggestions]
-            })],
+            Errors =
+            [
+                .. reply.Errors.Select(e => new ClearTextError
+                {
+                    Type = e.Type,
+                    Token = e.Token,
+                    Index = e.Index,
+                    Suggestions = [.. e.Suggestions]
+                })
+            ],
             Tokens = [.. reply.Tokens]
 
 
         };
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
         if (_pythonProcess is not { HasExited: false }) return;
         _pythonProcess.Kill(entireProcessTree: true);

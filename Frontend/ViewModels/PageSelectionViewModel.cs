@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
@@ -92,7 +93,7 @@ public class PageSelectionViewModel : ViewModelBase
     {
         try
         {
-            var oldFileName = System.IO.Path.GetFileNameWithoutExtension(oldPath);
+            var oldFileName = Path.GetFileNameWithoutExtension(oldPath);
             var dialog = _stringDialogFactory.Create(oldFileName);
             var newDocName = await _dialogService.ShowAsync(dialog);
 
@@ -101,8 +102,8 @@ public class PageSelectionViewModel : ViewModelBase
                 return;
 
 
-            var directory = System.IO.Path.GetDirectoryName(oldPath);
-            var extension = System.IO.Path.GetExtension(oldPath);
+            var directory = Path.GetDirectoryName(oldPath);
+            var extension = Path.GetExtension(oldPath);
 
             var newPath = directory + "\\" + newDocName + extension;
             _pathService.RenamePage(oldPath, newPath);
@@ -137,7 +138,7 @@ public class PageSelectionViewModel : ViewModelBase
             _pathService.AddPage(pageNameAndFilePath);
 
             _toastService.CreateAndShowInfoToast(
-                $"Document '{System.IO.Path.GetFileNameWithoutExtension(pageNameAndFilePath)}' created.");
+                $"Document '{Path.GetFileNameWithoutExtension(pageNameAndFilePath)}' created.");
         }
         catch (Exception e)
         {

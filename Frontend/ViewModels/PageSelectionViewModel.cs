@@ -75,6 +75,7 @@ public class PageSelectionViewModel : ViewModelBase
     // ReSharper disable once InconsistentNaming
     private PageViewModel CreateVM(string path)
     {
+        //Keep newing up, over DI, as this is just a UI element
         return new PageViewModel(path, _openEditor, () => RenamePage(path), () => DeletePage(path));
     }
 

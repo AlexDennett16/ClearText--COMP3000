@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -12,7 +13,6 @@ using ClearText.Services;
 using ClearText.ViewModels;
 using ClearText.ViewModels.Toolbar;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ClearText;
 
@@ -41,9 +41,14 @@ public partial class App : Application
             services.AddSingleton<IToastService, ToastService>();
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IPathService, PathService>();
-            services.AddSingleton<IGrammarService, GrammarService>();
             services.AddSingleton<IDocumentStatsService, DocumentStatsService>();
             services.AddSingleton<ISettingsService, SettingsService>();
+
+            services.AddSingleton<IGrammarService, GrammarService>();
+            // Register GrammarService as a Python startup task
+            services.AddSingleton<IPythonStartupTask>(
+                sp => (GrammarService)sp.GetRequiredService<IGrammarService>());
+
 
             // ViewModels
             services.AddSingleton<MainWindowViewModel>();
@@ -87,6 +92,9 @@ public partial class App : Application
 
             Services = services.BuildServiceProvider();
 
+            _ = StartBackgroundServicesAsync(Services);
+
+
             var window = Services.GetRequiredService<MainWindow>();
             window.DataContext = Services.GetRequiredService<MainWindowViewModel>();
 
@@ -97,6 +105,14 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
+
+    private static async Task StartBackgroundServicesAsync(IServiceProvider services)
+    {
+        foreach (var task in services.GetServices<IPythonStartupTask>())
+        {
+            await task.StartInBackground();
+        }
+    }
 
     public void ApplyTheme(AppTheme theme)
     {

@@ -86,5 +86,7 @@ public class GrammarService : BaseService, IGrammarService, IPythonStartupTask
         _pythonProcess.Kill(entireProcessTree: true);
         _pythonProcess.Dispose();
         Console.WriteLine("[GrammarService] Python process killed and disposed.");
+
+        Dispose();
     }
 }

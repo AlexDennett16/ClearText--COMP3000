@@ -223,13 +223,12 @@ public class TextEditorViewModel : ViewModelBase
         await _dialogService.ShowAsync(dialog);
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
         _autoSaveTimer.Elapsed -= AutoSaveDocument;
         _autoSaveTimer.Stop();
         _autoSaveTimer.Dispose();
-        GC.SuppressFinalize(this);
 
-        base.Dispose();
+        Dispose();
     }
 }

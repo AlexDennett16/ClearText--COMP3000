@@ -1,45 +1,117 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
-using Avalonia.Themes.Fluent;
+using ClearText.DialogFactories;
+using ClearText.DialogFactoriesInterfaces;
+using ClearText.Dialogs;
 using ClearText.Enums;
+using ClearText.Interfaces;
 using ClearText.Services;
+using ClearText.ViewModels;
+using ClearText.ViewModels.Toolbar;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ClearText;
 
+// ReSharper disable once PartialTypeWithSinglePart
 public partial class App : Application
 {
-    public static AppServices Services { get; private set; } = null!;
-    public static Window? MainWindow { get; private set; }
-
+    public static IServiceProvider Services { get; private set; } = null!;
     public override void Initialize()
     {
         Console.WriteLine("App.Initialize CALLED");
         AvaloniaXamlLoader.Load(this);
     }
 
+
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var window = new MainWindow();
-            MainWindow = window;
+            var services = new ServiceCollection();
 
-            Services = new AppServices(window);
+            // Windows and UI
+            services.AddSingleton<MainWindow>();
+            services.AddSingleton<IUiHost>(sp => sp.GetRequiredService<MainWindow>());
 
-            window.DataContext = new ViewModels.MainWindowViewModel(Services);
+            // Services
+            services.AddSingleton<IToastService, ToastService>();
+            services.AddSingleton<IDialogService, DialogService>();
+            services.AddSingleton<IPathService, PathService>();
+            services.AddSingleton<IDocumentStatsService, DocumentStatsService>();
+            services.AddSingleton<ISettingsService, SettingsService>();
 
-            ApplyTheme(Services.SettingsService.CurrentTheme);
+            services.AddSingleton<IGrammarService, GrammarService>();
+            // Register GrammarService as a Python startup task
+            services.AddSingleton<IPythonStartupTask>(
+                sp => (GrammarService)sp.GetRequiredService<IGrammarService>());
+
+
+            // ViewModels
+            services.AddSingleton<MainWindowViewModel>();
+            services.AddTransient<PageSelectionViewModel>();
+            services.AddTransient<TextEditorViewModel>();
+            services.AddTransient<DashboardToolbarViewModel>();
+            services.AddTransient<EditorToolbarViewModel>();
+
+            //Dialogs
+            services.AddTransient<SettingsDialogViewModel>();
+            services.AddTransient<StringDialogViewModel>();
+            services.AddTransient<DataDisplayDialogViewModel>();
+            services.AddTransient<CreateNewDocumentDialogViewModel>();
+
+
+            // ViewModel Factories
+            services.AddSingleton<Func<string, Action, TextEditorViewModel>>(sp =>
+                (filePath, close) =>
+                    ActivatorUtilities.CreateInstance<TextEditorViewModel>(
+                        sp, filePath, close)
+            );
+            services.AddSingleton<Func<Action<string>, PageSelectionViewModel>>(sp =>
+                openEditorCallback =>
+                    ActivatorUtilities.CreateInstance<PageSelectionViewModel>(
+                        sp, openEditorCallback)
+            );
+
+            services.AddSingleton<Func<DashboardToolbarViewModel>>(sp =>
+                sp.GetRequiredService<DashboardToolbarViewModel>);
+
+            services.AddSingleton<Func<string, EditorToolbarViewModel>>(sp =>
+                (filePath) =>
+                    ActivatorUtilities.CreateInstance<EditorToolbarViewModel>(
+                        sp, filePath)
+            );
+
+            // Dialog Factories
+            services.AddSingleton<ICreateNewDocumentDialogFactory, CreateNewDocumentDialogFactory>();
+            services.AddSingleton<IStringDialogFactory, StringDialogFactory>();
+            services.AddSingleton<IDataDisplayDialogFactory, DataDisplayDialogFactory>();
+
+            Services = services.BuildServiceProvider();
+
+            _ = StartBackgroundServicesAsync(Services);
+
+
+            var window = Services.GetRequiredService<MainWindow>();
+            window.DataContext = Services.GetRequiredService<MainWindowViewModel>();
 
             desktop.MainWindow = window;
-
             desktop.Exit += OnAppExit;
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+
+    private static async Task StartBackgroundServicesAsync(IServiceProvider services)
+    {
+        foreach (var task in services.GetServices<IPythonStartupTask>())
+        {
+            await task.StartInBackground();
+        }
     }
 
     public void ApplyTheme(AppTheme theme)
@@ -55,6 +127,9 @@ public partial class App : Application
 
     private static void OnAppExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
     {
-        Services.Dispose();
+        if (Services is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
     }
 }

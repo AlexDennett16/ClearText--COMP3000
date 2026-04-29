@@ -15,24 +15,27 @@
         Padding="24"
         HorizontalAlignment="Center"
         VerticalAlignment="Center"
-        CornerRadius="16"
         Background="#4D4D4D"
-        BoxShadow="0 6 18 0 #40000000">
+        BoxShadow="0 6 18 0 #40000000"
+        CornerRadius="16">
 
         <StackPanel Spacing="16">
 
-            <!-- Optional header area -->
+            <!--  Optional header area  -->
             <TextBlock
                 x:Name="DialogHeader"
-                Text="{Binding Title}"
+                Margin="0,0,0,4"
+                HorizontalAlignment="Center"
                 FontSize="20"
                 FontWeight="SemiBold"
                 Foreground="#FFF"
-                HorizontalAlignment="Center"
-                Margin="0,0,0,4" />
+                Text="Enter a value" />
 
-            <!-- Divider line -->
-            <Border Height="1" Background="#000" Margin="0,0,0,8" />
+            <!--  Divider line  -->
+            <Border
+                Height="1"
+                Margin="0,0,0,8"
+                Background="#000" />
 
             <StackPanel Spacing="12">
                 <TextBlock Text="Enter text:" />

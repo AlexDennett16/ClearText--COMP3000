@@ -31,7 +31,10 @@ public class CreateNewDocumentDialogViewModel : DialogViewModelBase<string?>
 
     public ReactiveCommand<Unit, Task> Browse { get; }
 
-    public CreateNewDocumentDialogViewModel(IToastService toastService, IPathService pathService, string previousFilePath = "")
+    public CreateNewDocumentDialogViewModel(
+        IToastService toastService,
+        IPathService pathService,
+        string previousFilePath = "")
     {
         _toastService = toastService;
         _pathService = pathService;

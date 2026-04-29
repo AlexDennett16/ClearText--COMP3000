@@ -10,7 +10,6 @@ namespace ClearText.Dialogs;
 
 public class SettingsDialogViewModel : DialogViewModelBase<bool>
 {
-    private readonly ISettingsService _settings;
     public Array ThemeOptions { get; } = Enum.GetValues(typeof(AppTheme));
     private bool _autoSaveEnabled;
 
@@ -25,9 +24,11 @@ public class SettingsDialogViewModel : DialogViewModelBase<bool>
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
     public ReactiveCommand<Unit, Unit> CloseCommand { get; }
 
-    public SettingsDialogViewModel(ISettingsService settingsService, IToastService toastService)
+    public SettingsDialogViewModel(
+        ISettingsService settingsService,
+        IToastService toastService)
     {
-        _settings = settingsService;
+        var settings = settingsService;
 
         // Clone values so cancel doesn't apply them
         AutoSaveEnabled = settingsService.AutoSaveEnabled;
@@ -37,10 +38,10 @@ public class SettingsDialogViewModel : DialogViewModelBase<bool>
         SaveCommand = ReactiveCommand.Create(() =>
         {
             // Apply changes
-            _settings.AutoSaveEnabled = AutoSaveEnabled;
-            _settings.AutoSaveInterval = AutoSaveInterval;
-            _settings.CurrentTheme = SelectedTheme;
-            _settings.SaveSettings();
+            settings.AutoSaveEnabled = AutoSaveEnabled;
+            settings.AutoSaveInterval = AutoSaveInterval;
+            settings.CurrentTheme = SelectedTheme;
+            settings.SaveSettings();
             ((App)Application.Current!).ApplyTheme(SelectedTheme);
 
 

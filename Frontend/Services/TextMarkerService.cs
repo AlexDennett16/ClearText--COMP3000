@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
@@ -8,154 +7,153 @@ using AvaloniaEdit.Rendering;
 using ClearText.BaseTypes;
 using ClearText.DataObjects;
 
-namespace ClearText.Services
+namespace ClearText.Services;
+
+public class TextMarkerService(TextDocument document) : BaseService, IBackgroundRenderer
 {
-    public class TextMarkerService(TextDocument document) : BaseService, IBackgroundRenderer
+    private readonly TextSegmentCollection<TextMarker> _markers = new(document);
+
+    public void Draw(TextView textView, DrawingContext drawingContext)
     {
-        private readonly TextSegmentCollection<TextMarker> _markers = new(document);
+        if (!textView.VisualLinesValid)
+            return;
 
-        public void Draw(TextView textView, DrawingContext drawingContext)
+        foreach (var marker in _markers)
         {
-            if (!textView.VisualLinesValid)
-                return;
-
-            foreach (var marker in _markers)
+            foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, marker))
             {
-                foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, marker))
-                {
-                    var pen = new Pen(new SolidColorBrush(marker.Color), 1.5);
+                var pen = new Pen(new SolidColorBrush(marker.Color), 1.5);
 
-                    var start = rect.BottomLeft;
-                    var end = rect.BottomRight;
+                var start = rect.BottomLeft;
+                var end = rect.BottomRight;
 
-                    var geometry = CreateWavyLine(start, end, 3);
-                    drawingContext.DrawGeometry(null, pen, geometry);
-                }
+                var geometry = CreateWavyLine(start, end, 3);
+                drawingContext.DrawGeometry(null, pen, geometry);
             }
         }
+    }
 
-        public KnownLayer Layer => KnownLayer.Selection;
+    public KnownLayer Layer => KnownLayer.Selection;
 
-        private static StreamGeometry CreateWavyLine(Point start, Point end, double amplitude)
+    private static StreamGeometry CreateWavyLine(Point start, Point end, double amplitude)
+    {
+        var geometry = new StreamGeometry();
+
+        using var ctx = geometry.Open();
+        ctx.BeginFigure(start, false);
+
+        var x = start.X;
+        var up = true;
+
+        while (x < end.X)
         {
-            var geometry = new StreamGeometry();
+            x += 4;
+            var y = start.Y + (up ? -amplitude : amplitude);
+            ctx.LineTo(new Point(x, y));
+            up = !up;
+        }
 
-            using var ctx = geometry.Open();
-            ctx.BeginFigure(start, false);
+        ctx.EndFigure(false);
+        return geometry;
+    }
 
-            var x = start.X;
-            var up = true;
 
-            while (x < end.X)
+    internal void ClearMarkers() => _markers.Clear();
+
+    internal TextMarker? GetMarkerAtOffset(int offset)
+    {
+        return _markers.FirstOrDefault(m =>
+            m.StartOffset <= offset &&
+            offset <= m.EndOffset);
+    }
+
+    private void AddMarker(
+        int startOffset,
+        int length,
+        Color color,
+        ClearTextError error)
+    {
+        _markers.Add(
+            new TextMarker(startOffset, length, color, error)
+        );
+    }
+
+
+    internal void LoadSquigglies(
+        string editorText,
+        IReadOnlyList<string> tokens,
+        IReadOnlyList<ClearTextError> errors)
+    {
+        ClearMarkers();
+
+        // Compute start offsets once
+        var tokenOffsets = new List<int>();
+        var cursor = 0;
+
+        foreach (var token in tokens)
+        {
+            // Skip whitespace
+            while (cursor < editorText.Length &&
+                   char.IsWhiteSpace(editorText[cursor]))
             {
-                x += 4;
-                var y = start.Y + (up ? -amplitude : amplitude);
-                ctx.LineTo(new Point(x, y));
-                up = !up;
+                cursor++;
             }
 
-            ctx.EndFigure(false);
-            return geometry;
+            tokenOffsets.Add(cursor);
+            cursor += token.Length;
         }
 
-
-        internal void ClearMarkers() => _markers.Clear();
-
-        internal TextMarker? GetMarkerAtOffset(int offset)
+        /*Console.WriteLine("[TextMarkerService] Applying markers:");
+        for (var i = 0; i < tokens.Count; i++)
         {
-            return _markers.FirstOrDefault(m =>
-                m.StartOffset <= offset &&
-                offset <= m.EndOffset);
-        }
+            Console.WriteLine(
+                $"  Token[{i}] '{tokens[i]}' at offset {tokenOffsets[i]}"
+            );
+        }*/
 
-        private void AddMarker(
-            int startOffset,
+        foreach (var error in errors)
+        {
+            if (error.Index < 0 || error.Index >= tokens.Count)
+            {
+                /*Console.WriteLine(
+                    $"[TextMarkerService] Invalid index {error.Index}"
+                );*/
+                continue;
+            }
+
+            var start = tokenOffsets[error.Index];
+            var length = tokens[error.Index].Length;
+
+            /*Console.WriteLine(
+                $"[TextMarkerService] Marking '{tokens[error.Index]}' " +
+                $"at {start} length {length}"
+            );*/
+
+            AddMarker(start, length, Colors.Red, error);
+        }
+    }
+
+    internal void Remove(TextMarker marker)
+    {
+        _markers.Remove(marker);
+    }
+
+
+    internal class TextMarker : TextSegment
+    {
+        public Color Color { get; }
+        public ClearTextError Error { get; }
+
+        public TextMarker(
+            int start,
             int length,
             Color color,
             ClearTextError error)
         {
-            _markers.Add(
-                new TextMarker(startOffset, length, color, error)
-            );
-        }
-
-
-        internal void LoadSquigglies(
-            string editorText,
-            IReadOnlyList<string> tokens,
-            IReadOnlyList<ClearTextError> errors)
-        {
-            ClearMarkers();
-
-            // Compute start offsets once
-            var tokenOffsets = new List<int>();
-            var cursor = 0;
-
-            foreach (var token in tokens)
-            {
-                // Skip whitespace
-                while (cursor < editorText.Length &&
-                       char.IsWhiteSpace(editorText[cursor]))
-                {
-                    cursor++;
-                }
-
-                tokenOffsets.Add(cursor);
-                cursor += token.Length;
-            }
-
-            Console.WriteLine("[TextMarkerService] Applying markers:");
-            for (var i = 0; i < tokens.Count; i++)
-            {
-                Console.WriteLine(
-                    $"  Token[{i}] '{tokens[i]}' at offset {tokenOffsets[i]}"
-                );
-            }
-
-            foreach (var error in errors)
-            {
-                if (error.Index < 0 || error.Index >= tokens.Count)
-                {
-                    Console.WriteLine(
-                        $"[TextMarkerService] Invalid index {error.Index}"
-                    );
-                    continue;
-                }
-
-                var start = tokenOffsets[error.Index];
-                var length = tokens[error.Index].Length;
-
-                Console.WriteLine(
-                    $"[TextMarkerService] Marking '{tokens[error.Index]}' " +
-                    $"at {start} length {length}"
-                );
-
-                AddMarker(start, length, Colors.Red, error);
-            }
-        }
-
-        internal void Remove(TextMarker marker)
-        {
-            _markers.Remove(marker);
-        }
-
-
-        internal class TextMarker : TextSegment
-        {
-            public Color Color { get; }
-            public ClearTextError Error { get; }
-
-            public TextMarker(
-                int start,
-                int length,
-                Color color,
-                ClearTextError error)
-            {
-                StartOffset = start;
-                Length = length;
-                Color = color;
-                Error = error;
-            }
+            StartOffset = start;
+            Length = length;
+            Color = color;
+            Error = error;
         }
     }
 }

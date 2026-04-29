@@ -6,5 +6,8 @@ namespace ClearText.Interfaces;
 
 public interface IDialogService : IBaseServiceInterface
 {
-  Task<TResult?> ShowAsync<TResult>(DialogViewModelBase<TResult> vm);
+  Task<TResult?> ShowAsync<TResult>(DialogViewModelBase<TResult> dialog);
+
+  Task<TResult?> ShowAsync<TDialog, TResult>() where TDialog : DialogViewModelBase<TResult>;
+
 }

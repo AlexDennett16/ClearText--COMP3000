@@ -37,8 +37,8 @@ public class DocumentStatsService : BaseService, IDocumentStatsService
         {
             WordCount = wordCount.ToString(),
             CharacterCount = documentText.Length.ToString(),
-            FleschKincaidGradeLevel = fkGrade,
-            FleschKincaidBreakdown = GetReadabilityDescription(double.Parse(fkGrade))
+            FleschKincaidGradeLevel = fkGrade.ToString("0.#"),
+            FleschKincaidBreakdown = GetReadabilityDescription(fkGrade)
         };
     }
 
@@ -81,7 +81,7 @@ public class DocumentStatsService : BaseService, IDocumentStatsService
         }
     }
 
-    private static string CalculateFleschKincaid(double words, double sentences, double syllables)
+    private static double CalculateFleschKincaid(double words, double sentences, double syllables)
     {
         var wordsPerSentence = words / sentences;
         var syllablesPerWord = syllables / words;
@@ -91,7 +91,7 @@ public class DocumentStatsService : BaseService, IDocumentStatsService
                      15.59;
         result = Math.Round(result, 3);
 
-        return result.ToString("F1");
+        return result;
     }
 
     public static string GetReadabilityDescription(double fkgl)

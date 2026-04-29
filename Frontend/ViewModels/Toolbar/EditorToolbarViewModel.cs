@@ -1,8 +1,9 @@
+using System.IO;
 using ClearText.BaseTypes.BaseViewModels;
 
 namespace ClearText.ViewModels.Toolbar;
 
-public class EditorToolbarViewModel(ToolbarViewModel parent) : ViewModelBase
+public class EditorToolbarViewModel(string filePath) : ViewModelBase
 {
-    public ToolbarViewModel Parent { get; } = parent;
+    public string FileName { get; } = Path.GetFileNameWithoutExtension(filePath);
 }

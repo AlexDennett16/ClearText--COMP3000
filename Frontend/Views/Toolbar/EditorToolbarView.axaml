@@ -1,0 +1,24 @@
+<UserControl
+    x:Class="ClearText.Views.Toolbar.EditorToolbarView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:ClearText.ViewModels.Toolbar"
+    x:DataType="vm:EditorToolbarViewModel">
+
+    <Grid Background="{DynamicResource DefaultTabBackgroundBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Image
+            Grid.Column="0"
+            VerticalAlignment="Center"
+            Source="../../Resources/ClearTextLogo.png" />
+
+        <TextBlock
+            Grid.Column="1"
+            VerticalAlignment="Center"
+            Text="{Binding FileName}" />
+    </Grid>
+</UserControl>

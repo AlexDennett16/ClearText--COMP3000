@@ -12,7 +12,7 @@ using ClearText.Utilities;
 
 namespace ClearText.Services;
 
-public class GrammarService : BaseService, IGrammarService
+public class GrammarService : BaseService, IGrammarService, IPythonStartupTask
 {
     public bool IsReady { get; private set; }
     public Exception? StartupError { get; private set; }
@@ -21,15 +21,9 @@ public class GrammarService : BaseService, IGrammarService
     private Process? _pythonProcess;
 
 
-
-    public GrammarService()
+    public Task StartInBackground()
     {
-        StartInBackground();
-    }
-
-    private void StartInBackground()
-    {
-        Task.Run(async () =>
+        return Task.Run(async () =>
         {
             try
             {

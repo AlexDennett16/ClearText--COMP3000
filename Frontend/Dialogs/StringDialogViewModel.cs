@@ -21,13 +21,15 @@ public class StringDialogViewModel : DialogViewModelBase<string?>
   public ReactiveCommand<Unit, Unit> Confirm { get; }
   public ReactiveCommand<Unit, Unit> Cancel { get; }
 
-  public StringDialogViewModel(IToastService toastService, IPathService pathService, string startingValue = "")
+  public StringDialogViewModel(
+    IToastService toastService,
+    IPathService pathService,
+    string startingValue = "")
   {
     _toastService = toastService;
     _pathService = pathService;
     _stringValue = startingValue;
 
-    Title = "Enter a value";
 
     Confirm = ReactiveCommand.Create(ExecuteConfirm);
     Cancel = ReactiveCommand.Create(() => Close?.Invoke(null));

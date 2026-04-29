@@ -7,6 +7,8 @@
     xmlns:dialogViews="clr-namespace:ClearText.Dialogs"
     xmlns:dialogs="clr-namespace:ClearText.Dialogs"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toolbarViews="clr-namespace:ClearText.Views.Toolbar"
+    xmlns:toolbarVm="clr-namespace:ClearText.ViewModels.Toolbar"
     xmlns:views="clr-namespace:ClearText.Views"
     xmlns:vm="clr-namespace:ClearText.ViewModels"
     RequestedThemeVariant="Dark"
@@ -30,12 +32,26 @@
   </Application.Resources>
 
   <Application.DataTemplates>
+
+    <!--  Main View(Models)  -->
     <DataTemplate DataType="vm:PageSelectionViewModel">
       <views:PageSelectionView />
     </DataTemplate>
+
     <DataTemplate DataType="vm:TextEditorViewModel">
       <views:TextEditorView />
     </DataTemplate>
+
+    <!--  Toolbars  -->
+    <DataTemplate DataType="toolbarVm:DashboardToolbarViewModel">
+      <toolbarViews:DashboardToolbarView />
+    </DataTemplate>
+
+    <DataTemplate DataType="toolbarVm:EditorToolbarViewModel">
+      <toolbarViews:EditorToolbarView />
+    </DataTemplate>
+
+    <!--  Dialogs  -->
     <DataTemplate DataType="dialogs:StringDialogViewModel">
       <dialogViews:StringDialogView />
     </DataTemplate>

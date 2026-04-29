@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using ClearText.BaseTypes.BaseViewModels;
-using ClearText.Dialogs;
+using ClearText.DialogFactoriesInterfaces;
 using ClearText.Interfaces;
 using ReactiveUI;
 
@@ -24,6 +24,8 @@ public class PageSelectionViewModel : ViewModelBase
     private readonly IPathService _pathService;
     private readonly IDialogService _dialogService;
     private readonly IToastService _toastService;
+    private readonly ICreateNewDocumentDialogFactory _createNewDocumentDialogFactory;
+    private readonly IStringDialogFactory _stringDialogFactory;
 
     public ObservableCollection<PageViewModel> AllPages { get; }
     public ObservableCollection<PageViewModel> FilteredPages { get; private set; }
@@ -42,12 +44,20 @@ public class PageSelectionViewModel : ViewModelBase
         }
     }
 
-    public PageSelectionViewModel(Action<string> openEditorCallback, IAppServices services)
+    public PageSelectionViewModel(
+        Action<string> openEditorCallback,
+        IToastService toastService,
+        IPathService pathService,
+        IDialogService dialogService,
+        ICreateNewDocumentDialogFactory createNewDocumentDialogFactory,
+        IStringDialogFactory stringDialogFactory)
     {
-        _toastService = services.ToastService;
+        _toastService = toastService;
+        _pathService = pathService;
+        _dialogService = dialogService;
+        _createNewDocumentDialogFactory = createNewDocumentDialogFactory;
+        _stringDialogFactory = stringDialogFactory;
         _openEditor = openEditorCallback;
-        _pathService = services.PathService;
-        _dialogService = services.DialogService;
 
         RequestNewPageName = new Interaction<Unit, string?>();
 
@@ -59,12 +69,13 @@ public class PageSelectionViewModel : ViewModelBase
 
         _pathService.PagePathsChanged += RefreshPages;
 
-        CreateNewDocumentCommand = ReactiveCommand.Create(CreateNewDocument);
+        CreateNewDocumentCommand = ReactiveCommand.CreateFromTask(CreateNewDocument);
     }
 
     // ReSharper disable once InconsistentNaming
     private PageViewModel CreateVM(string path)
     {
+        //Keep newing up, over DI, as this is just a UI element
         return new PageViewModel(path, _openEditor, () => RenamePage(path), () => DeletePage(path));
     }
 
@@ -82,12 +93,15 @@ public class PageSelectionViewModel : ViewModelBase
         try
         {
             var oldFileName = System.IO.Path.GetFileNameWithoutExtension(oldPath);
-            var newDocName = await CallRenamePageDialogAsync(oldFileName);
+            var dialog = _stringDialogFactory.Create(oldFileName);
+            var newDocName = await _dialogService.ShowAsync(dialog);
+
+
             if (string.IsNullOrEmpty(newDocName) || newDocName == oldFileName)
                 return;
 
 
-            var directory = System.IO.Path.GetDirectoryName(oldPath)!;
+            var directory = System.IO.Path.GetDirectoryName(oldPath);
             var extension = System.IO.Path.GetExtension(oldPath);
 
             var newPath = directory + "\\" + newDocName + extension;
@@ -107,38 +121,29 @@ public class PageSelectionViewModel : ViewModelBase
         _toastService.CreateAndShowInfoToast("Document deleted.");
     }
 
-    private async void CreateNewDocument()
+    private async Task CreateNewDocument()
     {
         try
         {
-            var pageNameAndFilePath = await CallNewDocumentDialog();
-            if (string.IsNullOrEmpty(pageNameAndFilePath))
+            var dialog = _createNewDocumentDialogFactory.Create(
+                _pathService.GetLastUsedFolderPath());
+
+            var pageNameAndFilePath =
+                await _dialogService.ShowAsync(dialog);
+
+            if (string.IsNullOrWhiteSpace(pageNameAndFilePath))
                 return;
 
             _pathService.AddPage(pageNameAndFilePath);
 
-            _toastService.CreateAndShowInfoToast($"Document '{System.IO.Path.GetFileNameWithoutExtension(pageNameAndFilePath)}' created.");
+            _toastService.CreateAndShowInfoToast(
+                $"Document '{System.IO.Path.GetFileNameWithoutExtension(pageNameAndFilePath)}' created.");
         }
         catch (Exception e)
         {
-            _toastService.CreateAndShowErrorToast("Error creating document: " + e.Message);
+            _toastService.CreateAndShowErrorToast(
+                "Error creating document: " + e.Message);
         }
-    }
-
-    private async Task<string?> CallNewDocumentDialog()
-    {
-        var dialog = new CreateNewDocumentDialogViewModel(
-            _toastService,
-            _pathService,
-            previousFilePath: _pathService.GetLastUsedFolderPath());
-        var result = await _dialogService.ShowAsync(dialog);
-        return result;
-    }
-    private async Task<string> CallRenamePageDialogAsync(string startingValue = "")
-    {
-        var dialog = new StringDialogViewModel(_toastService, _pathService, startingValue);
-        var result = await _dialogService.ShowAsync(dialog);
-        return result ?? string.Empty;
     }
 
     private void ApplyFilter()

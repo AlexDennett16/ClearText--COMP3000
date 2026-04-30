@@ -53,7 +53,7 @@ public class DocumentStatsServiceTests
         var method = typeof(DocumentStatsService)
             .GetMethod("CountSyllables", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 
-        var result = (int)method.Invoke(null, [word]);
+        var result = (int)(method?.Invoke(null, [word]) ?? throw new InvalidOperationException());
 
         result.Should().Be(expected);
     }

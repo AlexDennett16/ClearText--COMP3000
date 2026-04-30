@@ -28,7 +28,7 @@ public class PageSelectionViewModelTests
 
         if (pathSetup == null)
         {
-            path.Setup(x => x.PageFilePaths).Returns(Array.Empty<string>());
+            path.Setup(x => x.PageFilePaths).Returns([]);
         }
 
         var vm = new PageSelectionViewModel(

@@ -4,6 +4,8 @@ using System.Reactive;
 using ClearText.BaseTypes.BaseViewModels;
 using ReactiveUI;
 using DocumentFormat.OpenXml.Packaging;
+using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace ClearText.ViewModels;
 
@@ -40,7 +42,8 @@ public class PageViewModel : ViewModelBase
     {
         _filePath = filePath;
 
-        PreviewText = ExtractDocxPreview(filePath);
+        PreviewText = "Loading Preview...";
+        _ = ExtractDocxPreview(FilePath);
 
 
         OpenEditorCommand = ReactiveCommand.Create(() => openEditorCallback(FilePath));
@@ -48,31 +51,47 @@ public class PageViewModel : ViewModelBase
         DeleteCommand = ReactiveCommand.Create(deleteCallback);
     }
 
-    public static string ExtractDocxPreview(string filePath)
+    public async Task ExtractDocxPreview(string filePath)
     {
-        const int maxChars = 1000;
+
         try
         {
+            // Delay to allow for Editor to free up to allow for reads
+            await Task.Delay(150);
+            const int maxChars = 1000;
+
             using var doc = WordprocessingDocument.Open(filePath, false);
-            if (doc.MainDocumentPart is not { Document: not null })
-                throw new InvalidDataException("Invalid DOCX file structure");
-            var body = doc.MainDocumentPart.Document.Body;
 
-            if (body == null)
-                return "No preview available";
+            var mainPart = doc.MainDocumentPart;
+            if (mainPart?.Document?.Body == null)
+            {
+                DefaultPreviewName();
+                return;
+            }
 
-            var text = body.InnerText;
+            var text = mainPart.Document.Body.InnerText;
 
             if (string.IsNullOrWhiteSpace(text))
-                return "No preview available";
+            {
+                DefaultPreviewName();
+                return;
+            }
 
-            return text.Length > maxChars
+            PreviewText = text.Length > maxChars
                 ? text[..maxChars] + "…"
                 : text;
+
         }
-        catch
+        catch (Exception ex)
         {
-            return "No preview available";
+            Debug.WriteLine($"Error loading preview for {filePath}: {ex.Message}");
+            DefaultPreviewName();
         }
+
+    }
+
+    private void DefaultPreviewName()
+    {
+        PreviewText = "No preview available";
     }
 }

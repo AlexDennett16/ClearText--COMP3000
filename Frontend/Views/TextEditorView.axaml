@@ -28,6 +28,27 @@
                 </StackPanel>
             </Flyout>
         </ResourceDictionary>
+
+        <Geometry x:Key="IconBack">
+            M14,2 L6,10 L14,18 L12.5,19.5 L3.5,10 L12.5,0.5 Z
+        </Geometry>
+
+        <Geometry x:Key="IconSave">
+            M3,2 H16 L20,6 V18 H3 Z
+            M6,4 V9 H14 V4 Z
+            M6,11 H16 V16 H6 Z
+        </Geometry>
+
+        <Geometry x:Key="IconGrammar">
+            M2,10 L7,15 L18,4 L20,6 L7,20 L0,13 Z
+        </Geometry>
+
+        <Geometry x:Key="IconStats">
+            M4,18 V10 H7 V18 Z
+            M10,18 V6 H13 V18 Z
+            M16,18 V2 H19 V18 Z
+        </Geometry>
+
     </UserControl.Resources>
 
     <Grid>
@@ -35,34 +56,93 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <StackPanel
-            Margin="10"
-            HorizontalAlignment="Left"
-            DockPanel.Dock="Top"
-            Orientation="Horizontal">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Border
+            Grid.Row="0"
+            Grid.ColumnSpan="2"
+            Padding="12"
+            Background="#121212"
+            BorderBrush="#2A2A2A"
+            BorderThickness="0,0,0,1">
 
-            <Button
-                Margin="0,0,10,0"
-                Command="{Binding ReturnCommand}"
-                Content="Back" />
-            <Button
-                Margin="0,0,10,0"
-                Command="{Binding SaveCommand}"
-                Content="Save" />
-            <Button
-                Margin="0,0,10,0"
-                Command="{Binding AnalyseGrammarCommand}"
-                Content="Analyse Grammar" />
-            <Button
-                Margin="0,0,10,0"
-                Command="{Binding ShowDocumentStatsCommand}"
-                Content="Show Document Stats" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-        </StackPanel>
+                <!--  LEFT: Navigation & safety  -->
+                <StackPanel
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="12">
+
+                    <Button Classes="EditorButton" Command="{Binding ReturnCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path
+                                Width="18"
+                                Height="18"
+                                Data="{StaticResource IconBack}"
+                                Fill="White" />
+                            <TextBlock Text="Back" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Classes="EditorButton Primary" Command="{Binding SaveCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path
+                                Width="18"
+                                Height="18"
+                                Data="{StaticResource IconSave}"
+                                Fill="White" />
+                            <TextBlock Text="Save" />
+                        </StackPanel>
+                    </Button>
+
+                </StackPanel>
+
+                <!--  RIGHT: Analysis tools  -->
+                <StackPanel
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="12">
+
+                    <Button Classes="EditorButton" Command="{Binding AnalyseGrammarCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path
+                                Width="18"
+                                Height="18"
+                                Data="{StaticResource IconGrammar}"
+                                Fill="White" />
+                            <TextBlock Text="Analyse Grammar" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Classes="EditorButton" Command="{Binding ShowDocumentStatsCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path
+                                Width="18"
+                                Height="18"
+                                Data="{StaticResource IconStats}"
+                                Fill="White" />
+                            <TextBlock Text="Document Stats" />
+                        </StackPanel>
+                    </Button>
+
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <Border
             Grid.Row="1"
-            Margin="20,20,20,0"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            MinHeight="600"
+            Margin="100,40,100,40"
             BorderBrush="Gray"
             BorderThickness="2">
             <avaloniaEdit:TextEditor

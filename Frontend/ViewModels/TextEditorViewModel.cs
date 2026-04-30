@@ -11,16 +11,21 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using ClearText.DataObjects;
 using ClearText.DialogFactoriesInterfaces;
+using System.IO;
+using System.Threading;
+using System.Timers;
 
 // Explicit OpenXML aliases to avoid collisions with avalonia controls
 using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using WordParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using WordText = DocumentFormat.OpenXml.Wordprocessing.Text;
 
+
 namespace ClearText.ViewModels;
 
 public class TextEditorViewModel : ViewModelBase
 {
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
     private readonly string _filePath;
     private readonly List<WordRun> _originalRuns = [];
     private readonly IToastService _toastService;
@@ -78,7 +83,7 @@ public class TextEditorViewModel : ViewModelBase
         _dataDisplayDialogFactory = dataDisplayDialogFactory;
         DocumentText = LoadDocxText(filePath);
         ReturnCommand = ReactiveCommand.Create(returnCallback);
-        SaveCommand = ReactiveCommand.Create(ManualSaveDocument);
+        SaveCommand = ReactiveCommand.CreateFromTask(ManualSaveDocument);
         AnalyseGrammarCommand = ReactiveCommand.Create(AnalyseGrammarAction);
         ShowDocumentStatsCommand = ReactiveCommand.Create(ShowDocumentStats);
 
@@ -96,63 +101,85 @@ public class TextEditorViewModel : ViewModelBase
         AnalyseGrammarAction();
     }
 
-    private void ManualSaveDocument()
+    private async Task ManualSaveDocument()
     {
-        SaveDocxText();
-        _toastService.CreateAndShowInfoToast("Document saved.");
+        try
+        {
+            await SaveDocxTextAsync();
+            _toastService.CreateAndShowInfoToast("Document saved.");
+        }
+        catch (Exception ex)
+        {
+            _toastService.CreateAndShowErrorToast("Auto-save failed: " + ex.Message);
+        }
     }
 
-    private void AutoSaveDocument(object? sender, System.Timers.ElapsedEventArgs e)
+    private async void AutoSaveDocument(object? sender, ElapsedEventArgs e)
     {
-        SaveDocxText();
-        _toastService.CreateAndShowInfoToast("Document auto-saved.");
+        try
+        {
+            await SaveDocxTextAsync();
+            _toastService.CreateAndShowInfoToast("Document auto-saved.");
+        }
+        catch (Exception ex)
+        {
+            _toastService.CreateAndShowErrorToast("Auto-save failed: " + ex.Message);
+        }
     }
 
-    private void SaveDocxText()
+    private async Task SaveDocxTextAsync()
     {
-        using var doc = WordprocessingDocument.Open(_filePath, true);
-        var body = doc.MainDocumentPart?.Document?.Body ??
-                   throw new InvalidOperationException("The document body is null.");
-
-        body.RemoveAllChildren();
-
-        var textIndex = 0;
-
-        // Rebuild paragraphs and runs
-        foreach (var originalRun in _originalRuns)
+        await _saveLock.WaitAsync();
+        try
         {
-            var newRun = (WordRun)originalRun.CloneNode(true);
+            using var doc = WordprocessingDocument.Open(_filePath, true);
+            var body = doc.MainDocumentPart?.Document?.Body
+                       ?? throw new InvalidOperationException("The document body is null.");
 
-            var length = originalRun.InnerText.Length;
-            if (textIndex + length > DocumentText.Length)
-                length = DocumentText.Length - textIndex;
+            body.RemoveAllChildren();
 
-            if (length <= 0)
-                break;
+            var textIndex = 0;
 
-            var runText = DocumentText.Substring(textIndex, length);
-            textIndex += length;
+            foreach (var originalRun in _originalRuns)
+            {
+                var newRun = (WordRun)originalRun.CloneNode(true);
 
-            newRun.RemoveAllChildren<WordText>();
-            newRun.AppendChild(new WordText(runText));
+                var length = originalRun.InnerText.Length;
+                if (textIndex + length > DocumentText.Length)
+                    length = DocumentText.Length - textIndex;
 
-            var paragraph = new WordParagraph();
-            paragraph.Append(newRun);
-            body.Append(paragraph);
+                if (length <= 0)
+                    break;
+
+                var runText = DocumentText.Substring(textIndex, length);
+                textIndex += length;
+
+                newRun.RemoveAllChildren<WordText>();
+                newRun.AppendChild(new WordText(runText));
+
+                var paragraph = new WordParagraph();
+                paragraph.Append(newRun);
+                body.Append(paragraph);
+            }
+
+            if (textIndex < DocumentText.Length)
+            {
+                var remaining = DocumentText[textIndex..];
+                body.Append(new WordParagraph(new WordRun(new WordText(remaining))));
+            }
+
+            doc.MainDocumentPart.Document.Save();
+            _storageService.TouchPage(_filePath);
         }
-
-        if (textIndex < DocumentText.Length)
+        catch (IOException ex)
         {
-            var remaining = DocumentText[textIndex..];
-
-            var extraParagraph = new WordParagraph();
-            var extraRun = new WordRun(new WordText(remaining));
-            extraParagraph.Append(extraRun);
-            body.Append(extraParagraph);
+            // Quietly log external IO error
+            Debug.WriteLine($"Save skipped due to file lock: {ex.Message}");
         }
-
-        doc.MainDocumentPart.Document.Save();
-        _storageService.TouchPage(_filePath);
+        finally
+        {
+            _saveLock.Release();
+        }
     }
 
     private string LoadDocxText(string path)
@@ -225,10 +252,14 @@ public class TextEditorViewModel : ViewModelBase
 
     protected override void Dispose(bool disposing)
     {
+
+        if (!disposing)
+            return;
+
         _autoSaveTimer.Elapsed -= AutoSaveDocument;
         _autoSaveTimer.Stop();
         _autoSaveTimer.Dispose();
 
-        Dispose();
+        base.Dispose(disposing);
     }
 }

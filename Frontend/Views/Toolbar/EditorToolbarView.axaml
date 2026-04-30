@@ -8,6 +8,7 @@
     <Grid Background="{DynamicResource DefaultTabBackgroundBrush}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="2*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -16,9 +17,24 @@
             VerticalAlignment="Center"
             Source="../../Resources/ClearTextLogo.png" />
 
-        <TextBlock
+
+
+        <StackPanel
             Grid.Column="1"
+            HorizontalAlignment="Center"
             VerticalAlignment="Center"
-            Text="{Binding FileName}" />
+            Orientation="Vertical">
+
+            <TextBlock
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                FontSize="32"
+                FontWeight="SemiBold"
+                Foreground="White"
+                LetterSpacing="0.8"
+                Text="{Binding FileName}" />
+        </StackPanel>
+
+
     </Grid>
 </UserControl>

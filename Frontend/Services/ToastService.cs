@@ -11,12 +11,18 @@ namespace ClearText.Services;
 
 public class ToastService : BaseService, IToastService
 {
+    private const int MaxToastCount = 5;
     public ObservableCollection<ToastNotificationViewModelBase> Toasts { get; } = [];
 
     public void ShowToast(ToastNotificationViewModelBase toast)
     {
         Dispatcher.UIThread.Post(() =>
         {
+            while (Toasts.Count > MaxToastCount)
+            {
+                Toasts.RemoveAt(0);
+            }
+
             Toasts.Add(toast);
 
             Task.Delay(toast.Duration).ContinueWith(_ => { Dispatcher.UIThread.Post(() => Toasts.Remove(toast)); });

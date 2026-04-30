@@ -8,7 +8,6 @@ namespace ClearText.Utilities;
 
 public static class PythonCleanUp
 {
-
     internal static void KillExistingPythonServers()
     {
         Console.WriteLine("[GrammarService] Checking for old Python processes...");

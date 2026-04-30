@@ -1,10 +1,13 @@
+
+
 namespace FrontendTests.DataObjects;
+
 public class DocumentStatsDataObjectTests
 {
     [Fact]
     public void DocumentStats_ShouldRequireAllProperties()
     {
-        Action act = () => new DocumentStats
+        var act = new DocumentStats
         {
             WordCount = "10",
             CharacterCount = "50",
@@ -12,7 +15,10 @@ public class DocumentStatsDataObjectTests
             FleschKincaidBreakdown = "Primary School"
         };
 
-        act.Should().NotThrow();
+        act.WordCount.Should().Be("10");
+        act.CharacterCount.Should().Be("50");
+        act.FleschKincaidGradeLevel.Should().Be("3.2");
+        act.FleschKincaidBreakdown.Should().Be("Primary School");
     }
 
     [Fact]

@@ -1,61 +1,79 @@
-namespace FrontendTests.Unit.ViewModels;
+namespace FrontendTests.ViewModels;
 
 public class PageSelectionViewModelTests
 {
-    private PageSelectionViewModel CreateVM(
-        Mock<IPathService>? path = null,
-        Mock<IDialogService>? dialog = null,
-        Mock<IToastService>? toast = null)
+    // ReSharper disable once InconsistentNaming
+    private static (
+        PageSelectionViewModel vm,
+        Mock<IPathService> path,
+        Mock<IDialogService> dialog,
+        Mock<IToastService> toast,
+        Mock<ICreateNewDocumentDialogFactory> createFactory,
+        Mock<IStringDialogFactory> stringFactory
+    ) CreateVM(
+        Action<Mock<IPathService>>? pathSetup = null,
+        Action<Mock<IDialogService>>? dialogSetup = null,
+        Action<Mock<IToastService>>? toastSetup = null)
     {
-        path ??= new Mock<IPathService>();
-        dialog ??= new Mock<IDialogService>();
-        toast ??= new Mock<IToastService>();
+        var path = new Mock<IPathService>();
+        var dialog = new Mock<IDialogService>();
+        var toast = new Mock<IToastService>();
 
-        // Only set a default if the test didn't configure PageFilePaths
-        if (!path.Setups.Any(s => s.Expression.ToString().Contains("PageFilePaths")))
+        var createFactory = new Mock<ICreateNewDocumentDialogFactory>();
+        var stringFactory = new Mock<IStringDialogFactory>();
+
+        pathSetup?.Invoke(path);
+        dialogSetup?.Invoke(dialog);
+        toastSetup?.Invoke(toast);
+
+        if (pathSetup == null)
         {
             path.Setup(x => x.PageFilePaths).Returns(Array.Empty<string>());
         }
 
+        var vm = new PageSelectionViewModel(
+            _ => { },
+            toast.Object,
+            path.Object,
+            dialog.Object,
+            createFactory.Object,
+            stringFactory.Object
+        );
 
-        var app = new Mock<IAppServices>();
-        app.Setup(x => x.PathService).Returns(path.Object);
-        app.Setup(x => x.DialogService).Returns(dialog.Object);
-        app.Setup(x => x.ToastService).Returns(toast.Object);
-
-        return new PageSelectionViewModel(_ => { }, app.Object);
+        return (vm, path, dialog, toast, createFactory, stringFactory);
     }
 
     [Fact]
     public void FilterText_ShouldFilterPagesCorrectly()
     {
-        var path = new Mock<IPathService>();
-        path.Setup(x => x.PageFilePaths)
-            .Returns(new[] { "document.docx", "bigDocument.docx", "veryBigDocument.docx" });
-
-        var vm = CreateVM(path);
+        var (vm, _, _, _, _, _) = CreateVM(
+            pathSetup: p => p.Setup(x => x.PageFilePaths)
+                             .Returns(
+                             [
+                             "document.docx",
+                             "bigDocument.docx",
+                             "veryBigDocument.docx"
+                             ])
+        );
 
         vm.FilterText = "big";
 
-        // only bigDocument, veryBigDocument contain "big"
         vm.FilteredPages.Should().HaveCount(2);
         vm.FilteredPages.Select(p => p.Title)
-            .Should().Contain(new[] { "bigDocument", "veryBigDocument" });
+            .Should().Contain(["bigDocument", "veryBigDocument"]);
     }
+
 
     [Fact]
     public void FilterText_Empty_ShouldResetFilteredPages()
     {
-        var path = new Mock<IPathService>();
-        path.Setup(x => x.PageFilePaths)
-            .Returns(new[] { "One.docx", "Two.docx" });
+        var (vm, _, _, _, _, _) = CreateVM(
+            pathSetup: p => p.Setup(x => x.PageFilePaths)
+                             .Returns(["One.docx", "Two.docx"])
+        );
 
-        var vm = CreateVM(path);
-
-        vm.FilterText = "o";
-
-        // "One" and "Two" both contain "o"
-        vm.FilteredPages.Should().HaveCount(2);
+        vm.FilterText = "Two";
+        vm.FilteredPages.Should().HaveCount(1);
 
         vm.FilterText = "";
         vm.FilteredPages.Should().HaveCount(2);
@@ -64,34 +82,35 @@ public class PageSelectionViewModelTests
     [Fact]
     public void RefreshPages_ShouldReloadPages_WhenStorageRaisesEvent()
     {
-        var path = new Mock<IPathService>();
+
+        var (vm, path, _, _, _, _) = CreateVM();
+
         path.SetupSequence(x => x.PageFilePaths)
-            .Returns(new[] { "One.docx" })
-            .Returns(new[] { "One.docx", "Two.docx" });
+            .Returns(["One.docx"])
+            .Returns(["One.docx", "Two.docx"]);
 
-        var vm = CreateVM(path);
-
-        // Trigger the event
+        // Trigger the event twice
+        path.Raise(x => x.PagePathsChanged += null);
         path.Raise(x => x.PagePathsChanged += null);
 
         vm.AllPages.Should().HaveCount(2);
     }
 
     [Fact]
-    public void CreateNewDocument_ShouldAddPage_WhenDialogReturnsName()
+    public async Task CreateNewDocument_ShouldAddPage_WhenDialogReturnsName()
     {
-        var path = new Mock<IPathService>();
-        var dialog = new Mock<IDialogService>();
-        var toast = new Mock<IToastService>();
+        var (vm, path, _, toast, createFactory, _) =
+            CreateVM(
+                dialogSetup: d =>
+                    d.Setup(x => x.ShowAsync(It.IsAny<DialogViewModelBase<string?>>()))
+                     .ReturnsAsync("C:/Docs/NewDoc.docx")
+            );
 
-        dialog.Setup(x => x.ShowAsync(It.IsAny<DialogViewModelBase<string?>>()))
-        .ReturnsAsync("C:/Docs/NewDoc.docx");
+        createFactory
+            .Setup(f => f.Create(It.IsAny<string>()))
+            .Returns(It.IsAny<CreateNewDocumentDialogViewModel>());
 
-        path.Setup(x => x.AddPage("C:/Docs/NewDoc.docx"));
-
-        var vm = CreateVM(path, dialog, toast);
-
-        vm.CreateNewDocumentCommand.Execute().Subscribe();
+        await vm.CreateNewDocumentCommand.Execute();
 
         path.Verify(x => x.AddPage("C:/Docs/NewDoc.docx"), Times.Once);
         toast.Verify(x => x.CreateAndShowInfoToast(It.IsAny<string>(), null), Times.Once);
@@ -100,14 +119,12 @@ public class PageSelectionViewModelTests
     [Fact]
     public void CreateNewDocument_ShouldNotAddPage_WhenDialogReturnsNull()
     {
-        var path = new Mock<IPathService>();
-        var dialog = new Mock<IDialogService>();
-        var toast = new Mock<IToastService>();
+        var (vm, path, dialog, _, _, _) = CreateVM();
 
-        dialog.Setup(x => x.ShowAsync<string?>(It.IsAny<DialogViewModelBase<string?>>()))
+        dialog.Setup(x => x.ShowAsync(It.IsAny<DialogViewModelBase<string?>>()))
               .ReturnsAsync((string?)null);
 
-        var vm = CreateVM(path, dialog, toast);
+
 
         vm.CreateNewDocumentCommand.Execute().Subscribe();
 
@@ -117,19 +134,15 @@ public class PageSelectionViewModelTests
     [Fact]
     public void RenamePage_ShouldRenameFile_WhenDialogReturnsNewName()
     {
-        var path = new Mock<IPathService>();
-        var dialog = new Mock<IDialogService>();
-        var toast = new Mock<IToastService>();
+        var (vm, path, dialog, toast, _, _) = CreateVM();
 
-        dialog.Setup(x => x.ShowAsync<string?>(It.IsAny<DialogViewModelBase<string?>>()))
+        dialog.Setup(x => x.ShowAsync(It.IsAny<DialogViewModelBase<string?>>()))
               .ReturnsAsync("Renamed");
-
-        var vm = CreateVM(path, dialog, toast);
 
         var rename = typeof(PageSelectionViewModel)
             .GetMethod("RenamePage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
 
-        rename.Invoke(vm, new object[] { "C:/Docs/Old.docx" });
+        rename.Invoke(vm, ["C:/Docs/Old.docx"]);
 
         path.Verify(x => x.RenamePage(
             "C:/Docs/Old.docx",
@@ -142,15 +155,13 @@ public class PageSelectionViewModelTests
     [Fact]
     public void DeletePage_ShouldCallStorageAndToast()
     {
-        var path = new Mock<IPathService>();
-        var toast = new Mock<IToastService>();
 
-        var vm = CreateVM(path, null, toast);
+        var (vm, path, _, toast, _, _) = CreateVM();
 
         var delete = typeof(PageSelectionViewModel)
             .GetMethod("DeletePage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
 
-        delete.Invoke(vm, new object[] { "C:/Docs/ToDelete.docx" });
+        delete.Invoke(vm, ["C:/Docs/ToDelete.docx"]);
 
         path.Verify(x => x.DeletePage("C:/Docs/ToDelete.docx"), Times.Once);
         toast.Verify(x => x.CreateAndShowInfoToast(It.IsAny<string>(), null), Times.Once);
@@ -159,7 +170,7 @@ public class PageSelectionViewModelTests
     [Fact]
     public void WrapWidth_ShouldRaisePropertyChanged()
     {
-        var vm = CreateVM();
+        var (vm, _, _, _, _, _) = CreateVM();
 
         double observed = -1;
         vm.PropertyChanged += (_, e) =>

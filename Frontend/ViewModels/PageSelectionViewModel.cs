@@ -20,11 +20,10 @@ public class PageSelectionViewModel : ViewModelBase
         get => _wrapWidth;
         set => this.RaiseAndSetIfChanged(ref _wrapWidth, value);
     }
-
-    private readonly Action<string> _openEditor;
     private readonly IPathService _pathService;
     private readonly IDialogService _dialogService;
     private readonly IToastService _toastService;
+    private readonly INavigationService _navigationService;
     private readonly ICreateNewDocumentDialogFactory _createNewDocumentDialogFactory;
     private readonly IConfirmCancelDialogFactory _confirmCancelDialogFactory;
     private readonly IStringDialogFactory _stringDialogFactory;
@@ -47,21 +46,21 @@ public class PageSelectionViewModel : ViewModelBase
     }
 
     public PageSelectionViewModel(
-        Action<string> openEditorCallback,
         IToastService toastService,
         IPathService pathService,
         IDialogService dialogService,
         ICreateNewDocumentDialogFactory createNewDocumentDialogFactory,
         IStringDialogFactory stringDialogFactory,
-        IConfirmCancelDialogFactory confirmCancelDialogFactory)
+        IConfirmCancelDialogFactory confirmCancelDialogFactory,
+        INavigationService navigationService)
     {
         _toastService = toastService;
         _pathService = pathService;
         _dialogService = dialogService;
+        _navigationService = navigationService;
         _createNewDocumentDialogFactory = createNewDocumentDialogFactory;
         _stringDialogFactory = stringDialogFactory;
         _confirmCancelDialogFactory = confirmCancelDialogFactory;
-        _openEditor = openEditorCallback;
 
         RequestNewPageName = new Interaction<Unit, string?>();
 
@@ -80,7 +79,7 @@ public class PageSelectionViewModel : ViewModelBase
     private PageViewModel CreateVM(string path)
     {
         //Keep newing up, over DI, as this is just a UI element
-        return new PageViewModel(path, _openEditor, () => RenamePage(path), () => DeletePage(path));
+        return new PageViewModel(path, _navigationService, () => RenamePage(path), () => DeletePage(path));
     }
 
     private void RefreshPages()

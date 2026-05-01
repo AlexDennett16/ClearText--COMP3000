@@ -13,6 +13,8 @@ public class CreateNewDocumentDialogViewModel : DialogViewModelBase<string?>
     private string? _filePath;
     private readonly IToastService _toastService;
     private readonly IPathService _pathService;
+    private readonly IFolderPickerService _folderPickerService;
+
 
     public string? DocumentName
     {
@@ -34,10 +36,12 @@ public class CreateNewDocumentDialogViewModel : DialogViewModelBase<string?>
     public CreateNewDocumentDialogViewModel(
         IToastService toastService,
         IPathService pathService,
+        IFolderPickerService folderPickerService,
         string previousFilePath = "")
     {
         _toastService = toastService;
         _pathService = pathService;
+        _folderPickerService = folderPickerService;
         FilePath = previousFilePath;
 
         Title = "Create a Document";
@@ -49,7 +53,8 @@ public class CreateNewDocumentDialogViewModel : DialogViewModelBase<string?>
 
     private async Task ExecuteBrowseAsync()
     {
-        var folder = await _pathService.OpenFolderPickerAsync();
+        var startPath = _pathService.GetLastUsedFolderPath();
+        var folder = await _folderPickerService.OpenFolderPickerAsync(startPath);
         if (!string.IsNullOrWhiteSpace(folder))
         {
             FilePath = folder;

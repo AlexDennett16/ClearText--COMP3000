@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Avalonia.Controls;
-using Avalonia.Platform.Storage;
 using ClearText.BaseTypes;
 using ClearText.Constants;
 using ClearText.Interfaces;
@@ -17,16 +14,13 @@ public class PathService : BaseService, IPathService
 {
     private readonly string _storagePath;
     private readonly List<string> _cachedPaths;
-    private readonly Window _mainWindow;
     public string LastUsedFolder { get; private set; } = "";
     public event Action? PagePathsChanged;
     public IReadOnlyList<string> PageFilePaths => _cachedPaths;
 
-    public PathService(IUiHost host)
+    public PathService()
     {
-        _mainWindow = host.Window;
         _storagePath = FilePathFinder.GetAppDataPath(FileIOConstants.PagesConfigFile);
-
         _cachedPaths = LoadOrCreate();
     }
 
@@ -113,32 +107,6 @@ public class PathService : BaseService, IPathService
     public List<string?> GetExistingPageNames()
     {
         return _cachedPaths.Select(Path.GetFileNameWithoutExtension).ToList();
-    }
-
-    public async Task<string?> OpenFolderPickerAsync()
-    {
-        var options = new FolderPickerOpenOptions
-        {
-            AllowMultiple = false,
-            Title = "Select folder"
-        };
-
-
-        if (Directory.Exists(LastUsedFolder))
-        {
-            var folder = await _mainWindow.StorageProvider.TryGetFolderFromPathAsync(LastUsedFolder);
-            if (folder != null)
-                options.SuggestedStartLocation = folder;
-        }
-
-        var result = await _mainWindow.StorageProvider.OpenFolderPickerAsync(options);
-        var filePath = result.FirstOrDefault()?.Path.LocalPath;
-        if (!string.IsNullOrEmpty(filePath))
-        {
-            LastUsedFolder = filePath;
-        }
-
-        return filePath;
     }
 
     public string GetLastUsedFolderPath()

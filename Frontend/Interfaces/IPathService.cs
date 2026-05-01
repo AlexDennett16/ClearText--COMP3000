@@ -22,6 +22,4 @@ public interface IPathService : IBaseServiceInterface
   string GetLastUsedFolderPath();
 
   List<string?> GetExistingPageNames();
-
-  Task<string?> OpenFolderPickerAsync();
 }

@@ -36,6 +36,7 @@ public partial class App : Application
             // Windows and UI
             services.AddSingleton<MainWindow>();
             services.AddSingleton<IUiHost>(sp => sp.GetRequiredService<MainWindow>());
+            services.AddSingleton<INavigationService, NavigationService>();
 
             // Services
             services.AddSingleton<IToastService, ToastService>();
@@ -43,6 +44,7 @@ public partial class App : Application
             services.AddSingleton<IPathService, PathService>();
             services.AddSingleton<IDocumentStatsService, DocumentStatsService>();
             services.AddSingleton<ISettingsService, SettingsService>();
+            services.AddSingleton<IFolderPickerService, FolderPickerService>();
 
             services.AddSingleton<IGrammarService, GrammarService>();
             // Register GrammarService as a Python startup task
@@ -51,7 +53,6 @@ public partial class App : Application
 
 
             // ViewModels
-            services.AddSingleton<MainWindowViewModel>();
             services.AddTransient<PageSelectionViewModel>();
             services.AddTransient<TextEditorViewModel>();
             services.AddTransient<DashboardToolbarViewModel>();
@@ -67,22 +68,17 @@ public partial class App : Application
 
 
             // ViewModel Factories
-            services.AddSingleton<Func<string, Action, TextEditorViewModel>>(sp =>
-                (filePath, close) =>
-                    ActivatorUtilities.CreateInstance<TextEditorViewModel>(
-                        sp, filePath, close)
-            );
-            services.AddSingleton<Func<Action<string>, PageSelectionViewModel>>(sp =>
-                openEditorCallback =>
-                    ActivatorUtilities.CreateInstance<PageSelectionViewModel>(
-                        sp, openEditorCallback)
-            );
+            services.AddSingleton<Func<string, TextEditorViewModel>>(sp =>
+                filePath => ActivatorUtilities.CreateInstance<TextEditorViewModel>(sp, filePath));
+
+            services.AddSingleton<Func<PageSelectionViewModel>>(sp =>
+                sp.GetRequiredService<PageSelectionViewModel>);
 
             services.AddSingleton<Func<DashboardToolbarViewModel>>(sp =>
                 sp.GetRequiredService<DashboardToolbarViewModel>);
 
             services.AddSingleton<Func<string, EditorToolbarViewModel>>(sp =>
-                (filePath) =>
+                filePath =>
                     ActivatorUtilities.CreateInstance<EditorToolbarViewModel>(
                         sp, filePath)
             );
@@ -98,9 +94,13 @@ public partial class App : Application
             _ = StartBackgroundServicesAsync(Services);
 
 
-            var window = Services.GetRequiredService<MainWindow>();
-            window.DataContext = Services.GetRequiredService<MainWindowViewModel>();
 
+            var window = Services.GetRequiredService<MainWindow>();
+
+            var navigation = Services.GetRequiredService<INavigationService>();
+            navigation.ShowDashboard();
+
+            window.DataContext = window;
             desktop.MainWindow = window;
             desktop.Exit += OnAppExit;
         }

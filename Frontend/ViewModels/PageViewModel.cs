@@ -6,6 +6,7 @@ using ReactiveUI;
 using DocumentFormat.OpenXml.Packaging;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using ClearText.Interfaces;
 
 namespace ClearText.ViewModels;
 
@@ -35,7 +36,7 @@ public class PageViewModel : ViewModelBase
 
     public PageViewModel(
         string filePath,
-        Action<string> openEditorCallback,
+        INavigationService navigationService,
         Action renameCallback,
         Action deleteCallback)
 
@@ -46,7 +47,7 @@ public class PageViewModel : ViewModelBase
         _ = ExtractDocxPreview(FilePath);
 
 
-        OpenEditorCommand = ReactiveCommand.Create(() => openEditorCallback(FilePath));
+        OpenEditorCommand = ReactiveCommand.Create(() => navigationService.ShowEditor(FilePath));
         RenameCommand = ReactiveCommand.Create(renameCallback);
         DeleteCommand = ReactiveCommand.Create(deleteCallback);
     }

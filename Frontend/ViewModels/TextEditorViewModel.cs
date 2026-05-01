@@ -28,13 +28,13 @@ public class TextEditorViewModel : ViewModelBase
 {
     private readonly SemaphoreSlim _saveLock = new(1, 1);
     private readonly string _filePath;
-    private readonly Action _returnToSelectionCallback;
     private readonly List<WordRun> _originalRuns = [];
     private readonly IToastService _toastService;
     private readonly IGrammarService _grammarService;
     private readonly IPathService _storageService;
     private readonly IDialogService _dialogService;
     private readonly IDocumentStatsService _documentStatsService;
+    private readonly INavigationService _navigationService;
     private readonly IDataDisplayDialogFactory _dataDisplayDialogFactory;
     private readonly IExitDocumentDialogFactory _exitDocumentDialogFactory;
     private readonly System.Timers.Timer _autoSaveTimer;
@@ -68,13 +68,13 @@ public class TextEditorViewModel : ViewModelBase
 
     public TextEditorViewModel(
         string filePath,
-        Action returnToSelectionCallback,
         IToastService toastService,
         IGrammarService grammarService,
         IPathService storageService,
         IDialogService dialogService,
         IDocumentStatsService documentStatsService,
         ISettingsService settingsService,
+        INavigationService navigationService,
         IDataDisplayDialogFactory dataDisplayDialogFactory,
         IExitDocumentDialogFactory exitDocumentDialogFactory)
     {
@@ -84,9 +84,9 @@ public class TextEditorViewModel : ViewModelBase
         _storageService = storageService;
         _dialogService = dialogService;
         _documentStatsService = documentStatsService;
+        _navigationService = navigationService;
         _dataDisplayDialogFactory = dataDisplayDialogFactory;
         _exitDocumentDialogFactory = exitDocumentDialogFactory;
-        _returnToSelectionCallback = returnToSelectionCallback;
         DocumentText = LoadDocxText(filePath);
         ReturnCommand = ReactiveCommand.CreateFromTask(HandleNavigateBack);
         SaveCommand = ReactiveCommand.CreateFromTask(ManualSaveDocument);
@@ -146,12 +146,12 @@ public class TextEditorViewModel : ViewModelBase
         {
             case ExitDocumentResult.SaveAndExit:
                 await SaveDocxTextAsync();
-                _returnToSelectionCallback.Invoke();
+                _navigationService.ShowDashboard();
                 _toastService.CreateAndShowInfoToast("Document saved.");
                 break;
 
             case ExitDocumentResult.ExitWithoutSaving:
-                _returnToSelectionCallback.Invoke();
+                _navigationService.ShowDashboard();
                 _toastService.CreateAndShowInfoToast("Changes discarded.");
                 break;
             case ExitDocumentResult.Cancel:

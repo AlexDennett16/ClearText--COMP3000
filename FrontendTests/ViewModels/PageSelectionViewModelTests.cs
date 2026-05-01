@@ -9,6 +9,7 @@ public class PageSelectionViewModelTests
         Mock<IDialogService> dialog,
         Mock<IToastService> toast,
         Mock<ICreateNewDocumentDialogFactory> createFactory,
+        Mock<IConfirmCancelDialogFactory> confirmFactory,
         Mock<IStringDialogFactory> stringFactory
     ) CreateVM(
         Action<Mock<IPathService>>? pathSetup = null,
@@ -18,7 +19,7 @@ public class PageSelectionViewModelTests
         var path = new Mock<IPathService>();
         var dialog = new Mock<IDialogService>();
         var toast = new Mock<IToastService>();
-
+        var confirmFactory = new Mock<IConfirmCancelDialogFactory>();
         var createFactory = new Mock<ICreateNewDocumentDialogFactory>();
         var stringFactory = new Mock<IStringDialogFactory>();
 
@@ -37,16 +38,17 @@ public class PageSelectionViewModelTests
             path.Object,
             dialog.Object,
             createFactory.Object,
-            stringFactory.Object
+            stringFactory.Object,
+            confirmFactory.Object
         );
 
-        return (vm, path, dialog, toast, createFactory, stringFactory);
+        return (vm, path, dialog, toast, createFactory, confirmFactory, stringFactory);
     }
 
     [Fact]
     public void FilterText_ShouldFilterPagesCorrectly()
     {
-        var (vm, _, _, _, _, _) = CreateVM(
+        var (vm, _, _, _, _, _, _) = CreateVM(
             pathSetup: p => p.Setup(x => x.PageFilePaths)
                              .Returns(
                              [
@@ -67,7 +69,7 @@ public class PageSelectionViewModelTests
     [Fact]
     public void FilterText_Empty_ShouldResetFilteredPages()
     {
-        var (vm, _, _, _, _, _) = CreateVM(
+        var (vm, _, _, _, _, _, _) = CreateVM(
             pathSetup: p => p.Setup(x => x.PageFilePaths)
                              .Returns(["One.docx", "Two.docx"])
         );
@@ -83,7 +85,7 @@ public class PageSelectionViewModelTests
     public void RefreshPages_ShouldReloadPages_WhenStorageRaisesEvent()
     {
 
-        var (vm, path, _, _, _, _) = CreateVM();
+        var (vm, path, _, _, _, _, _) = CreateVM();
 
         path.SetupSequence(x => x.PageFilePaths)
             .Returns(["One.docx"])
@@ -99,7 +101,7 @@ public class PageSelectionViewModelTests
     [Fact]
     public async Task CreateNewDocument_ShouldAddPage_WhenDialogReturnsName()
     {
-        var (vm, path, _, toast, createFactory, _) =
+        var (vm, path, _, toast, createFactory, confirmFactory, stringFactory) =
             CreateVM(
                 dialogSetup: d =>
                     d.Setup(x => x.ShowAsync(It.IsAny<DialogViewModelBase<string?>>()))
@@ -119,7 +121,7 @@ public class PageSelectionViewModelTests
     [Fact]
     public void CreateNewDocument_ShouldNotAddPage_WhenDialogReturnsNull()
     {
-        var (vm, path, dialog, _, _, _) = CreateVM();
+        var (vm, path, dialog, _, _, _, _) = CreateVM();
 
         dialog.Setup(x => x.ShowAsync(It.IsAny<DialogViewModelBase<string?>>()))
               .ReturnsAsync((string?)null);
@@ -134,7 +136,7 @@ public class PageSelectionViewModelTests
     [Fact]
     public void RenamePage_ShouldRenameFile_WhenDialogReturnsNewName()
     {
-        var (vm, path, dialog, toast, _, _) = CreateVM();
+        var (vm, path, dialog, toast, _, confirmFactory, _) = CreateVM();
 
         dialog.Setup(x => x.ShowAsync(It.IsAny<DialogViewModelBase<string?>>()))
               .ReturnsAsync("Renamed");
@@ -156,10 +158,16 @@ public class PageSelectionViewModelTests
     public void DeletePage_ShouldCallStorageAndToast()
     {
 
-        var (vm, path, _, toast, _, _) = CreateVM();
+        var (vm, path, dialog, toast, _, _, _) = CreateVM();
 
         var delete = typeof(PageSelectionViewModel)
             .GetMethod("DeletePage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+
+
+        dialog
+            .Setup(x => x.ShowAsync(It.IsAny<DialogViewModelBase<bool?>>()))
+            .ReturnsAsync(true);
+
 
         delete.Invoke(vm, ["C:/Docs/ToDelete.docx"]);
 
@@ -170,7 +178,7 @@ public class PageSelectionViewModelTests
     [Fact]
     public void WrapWidth_ShouldRaisePropertyChanged()
     {
-        var (vm, _, _, _, _, _) = CreateVM();
+        var (vm, _, _, _, _, _, _) = CreateVM();
 
         double observed = -1;
         vm.PropertyChanged += (_, e) =>

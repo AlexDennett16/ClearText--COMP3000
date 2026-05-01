@@ -101,7 +101,7 @@ public class PageSelectionViewModelTests
     [Fact]
     public async Task CreateNewDocument_ShouldAddPage_WhenDialogReturnsName()
     {
-        var (vm, path, _, toast, createFactory, confirmFactory, stringFactory) =
+        var (vm, path, _, toast, createFactory, _, _) =
             CreateVM(
                 dialogSetup: d =>
                     d.Setup(x => x.ShowAsync(It.IsAny<DialogViewModelBase<string?>>()))
@@ -136,7 +136,7 @@ public class PageSelectionViewModelTests
     [Fact]
     public void RenamePage_ShouldRenameFile_WhenDialogReturnsNewName()
     {
-        var (vm, path, dialog, toast, _, confirmFactory, _) = CreateVM();
+        var (vm, path, dialog, toast, _, _, _) = CreateVM();
 
         dialog.Setup(x => x.ShowAsync(It.IsAny<DialogViewModelBase<string?>>()))
               .ReturnsAsync("Renamed");

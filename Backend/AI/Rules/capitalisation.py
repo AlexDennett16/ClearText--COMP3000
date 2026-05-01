@@ -8,6 +8,9 @@ def check_capitalization_errors(tokens: List[str]) -> List[dict]:
 
     for i, token in enumerate(tokens):
 
+        if token and token[0].isdigit():
+            continue
+
         # Pronoun "i"
         if lowercase_i_pattern.match(token):
             errors.append(

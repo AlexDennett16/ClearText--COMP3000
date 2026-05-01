@@ -1,5 +1,4 @@
 using System;
-using System.Reactive;
 using Avalonia;
 using ClearText.BaseTypes.BaseViewModels;
 using ClearText.Enums;
@@ -21,8 +20,6 @@ public class SettingsDialogViewModel : DialogViewModelBase<bool>
     public int AutoSaveInterval { get; set; }
     public AppTheme SelectedTheme { get; set; }
 
-    public ReactiveCommand<Unit, Unit> SaveCommand { get; }
-    public ReactiveCommand<Unit, Unit> CloseCommand { get; }
 
     public SettingsDialogViewModel(
         ISettingsService settingsService,
@@ -35,7 +32,7 @@ public class SettingsDialogViewModel : DialogViewModelBase<bool>
         AutoSaveInterval = settingsService.AutoSaveInterval;
         SelectedTheme = settingsService.CurrentTheme;
 
-        SaveCommand = ReactiveCommand.Create(() =>
+        ConfirmCommand = ReactiveCommand.Create(() =>
         {
             // Apply changes
             settings.AutoSaveEnabled = AutoSaveEnabled;

@@ -65,6 +65,12 @@
     <DataTemplate DataType="dialogs:SettingsDialogViewModel">
       <dialogViews:SettingsDialogView />
     </DataTemplate>
+    <DataTemplate DataType="dialogs:ConfirmCancelDialogViewModel">
+      <dialogViews:ConfirmCancelDialogView />
+    </DataTemplate>
+    <DataTemplate DataType="dialogs:ExitDocumentDialogViewModel">
+      <dialogViews:ExitDocumentDialogView />
+    </DataTemplate>
   </Application.DataTemplates>
 
 

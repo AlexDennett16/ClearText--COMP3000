@@ -62,6 +62,8 @@ public partial class App : Application
             services.AddTransient<StringDialogViewModel>();
             services.AddTransient<DataDisplayDialogViewModel>();
             services.AddTransient<CreateNewDocumentDialogViewModel>();
+            services.AddTransient<ConfirmCancelDialogViewModel>();
+            services.AddTransient<ExitDocumentDialogViewModel>();
 
 
             // ViewModel Factories
@@ -89,7 +91,8 @@ public partial class App : Application
             services.AddSingleton<ICreateNewDocumentDialogFactory, CreateNewDocumentDialogFactory>();
             services.AddSingleton<IStringDialogFactory, StringDialogFactory>();
             services.AddSingleton<IDataDisplayDialogFactory, DataDisplayDialogFactory>();
-
+            services.AddSingleton<IConfirmCancelDialogFactory, ConfirmCancelDialogFactory>();
+            services.AddSingleton<IExitDocumentDialogFactory, ExitDocumentDialogFactory>();
             Services = services.BuildServiceProvider();
 
             _ = StartBackgroundServicesAsync(Services);

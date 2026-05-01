@@ -19,6 +19,7 @@ using System.Timers;
 using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using WordParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using WordText = DocumentFormat.OpenXml.Wordprocessing.Text;
+using ClearText.Enums;
 
 
 namespace ClearText.ViewModels;
@@ -27,6 +28,7 @@ public class TextEditorViewModel : ViewModelBase
 {
     private readonly SemaphoreSlim _saveLock = new(1, 1);
     private readonly string _filePath;
+    private readonly Action _returnToSelectionCallback;
     private readonly List<WordRun> _originalRuns = [];
     private readonly IToastService _toastService;
     private readonly IGrammarService _grammarService;
@@ -34,6 +36,7 @@ public class TextEditorViewModel : ViewModelBase
     private readonly IDialogService _dialogService;
     private readonly IDocumentStatsService _documentStatsService;
     private readonly IDataDisplayDialogFactory _dataDisplayDialogFactory;
+    private readonly IExitDocumentDialogFactory _exitDocumentDialogFactory;
     private readonly System.Timers.Timer _autoSaveTimer;
     private string _documentText = string.Empty;
     private bool _isGrammarChecking;
@@ -65,14 +68,15 @@ public class TextEditorViewModel : ViewModelBase
 
     public TextEditorViewModel(
         string filePath,
-        Action returnCallback,
+        Action returnToSelectionCallback,
         IToastService toastService,
         IGrammarService grammarService,
         IPathService storageService,
         IDialogService dialogService,
         IDocumentStatsService documentStatsService,
         ISettingsService settingsService,
-        IDataDisplayDialogFactory dataDisplayDialogFactory)
+        IDataDisplayDialogFactory dataDisplayDialogFactory,
+        IExitDocumentDialogFactory exitDocumentDialogFactory)
     {
         _filePath = filePath;
         _toastService = toastService;
@@ -81,8 +85,10 @@ public class TextEditorViewModel : ViewModelBase
         _dialogService = dialogService;
         _documentStatsService = documentStatsService;
         _dataDisplayDialogFactory = dataDisplayDialogFactory;
+        _exitDocumentDialogFactory = exitDocumentDialogFactory;
+        _returnToSelectionCallback = returnToSelectionCallback;
         DocumentText = LoadDocxText(filePath);
-        ReturnCommand = ReactiveCommand.Create(returnCallback);
+        ReturnCommand = ReactiveCommand.CreateFromTask(HandleNavigateBack);
         SaveCommand = ReactiveCommand.CreateFromTask(ManualSaveDocument);
         AnalyseGrammarCommand = ReactiveCommand.Create(AnalyseGrammarAction);
         ShowDocumentStatsCommand = ReactiveCommand.Create(ShowDocumentStats);
@@ -124,6 +130,36 @@ public class TextEditorViewModel : ViewModelBase
         catch (Exception ex)
         {
             _toastService.CreateAndShowErrorToast("Auto-save failed: " + ex.Message);
+        }
+    }
+
+    private async Task HandleNavigateBack()
+    {
+        var dialog = _exitDocumentDialogFactory.Create(
+            "Unsaved Changes",
+            "Are you sure you want to return to the selection screen? Any unsaved changes will be lost."
+        );
+        var navResult = await _dialogService.ShowAsync(dialog);
+
+
+        switch (navResult)
+        {
+            case ExitDocumentResult.SaveAndExit:
+                await SaveDocxTextAsync();
+                _returnToSelectionCallback.Invoke();
+                _toastService.CreateAndShowInfoToast("Document saved.");
+                break;
+
+            case ExitDocumentResult.ExitWithoutSaving:
+                _returnToSelectionCallback.Invoke();
+                _toastService.CreateAndShowInfoToast("Changes discarded.");
+                break;
+            case ExitDocumentResult.Cancel:
+            case null:
+                // User cancelled, stay on the page
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 

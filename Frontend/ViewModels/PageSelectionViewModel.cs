@@ -26,6 +26,7 @@ public class PageSelectionViewModel : ViewModelBase
     private readonly IDialogService _dialogService;
     private readonly IToastService _toastService;
     private readonly ICreateNewDocumentDialogFactory _createNewDocumentDialogFactory;
+    private readonly IConfirmCancelDialogFactory _confirmCancelDialogFactory;
     private readonly IStringDialogFactory _stringDialogFactory;
 
     public ObservableCollection<PageViewModel> AllPages { get; }
@@ -51,13 +52,15 @@ public class PageSelectionViewModel : ViewModelBase
         IPathService pathService,
         IDialogService dialogService,
         ICreateNewDocumentDialogFactory createNewDocumentDialogFactory,
-        IStringDialogFactory stringDialogFactory)
+        IStringDialogFactory stringDialogFactory,
+        IConfirmCancelDialogFactory confirmCancelDialogFactory)
     {
         _toastService = toastService;
         _pathService = pathService;
         _dialogService = dialogService;
         _createNewDocumentDialogFactory = createNewDocumentDialogFactory;
         _stringDialogFactory = stringDialogFactory;
+        _confirmCancelDialogFactory = confirmCancelDialogFactory;
         _openEditor = openEditorCallback;
 
         RequestNewPageName = new Interaction<Unit, string?>();
@@ -116,10 +119,26 @@ public class PageSelectionViewModel : ViewModelBase
         }
     }
 
-    private void DeletePage(string path)
+    private async void DeletePage(string path)
     {
-        _pathService.DeletePage(path);
-        _toastService.CreateAndShowInfoToast("Document deleted.");
+        try
+        {
+            var dialog = _confirmCancelDialogFactory.Create(
+                "Confirm Deletion",
+                "Are you sure you want to delete this document?");
+
+            var result = await _dialogService.ShowAsync(dialog);
+
+            if (result != true)
+                return;
+
+            _pathService.DeletePage(path);
+            _toastService.CreateAndShowInfoToast("Document deleted.");
+        }
+        catch (Exception e)
+        {
+            _toastService.CreateAndShowErrorToast("Error deleting document: " + e.Message);
+        }
     }
 
     private async Task CreateNewDocument()

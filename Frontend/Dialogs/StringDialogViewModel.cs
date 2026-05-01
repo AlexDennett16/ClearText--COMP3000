@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Reactive;
 using ClearText.BaseTypes.BaseViewModels;
 using ClearText.Interfaces;
 using ReactiveUI;
@@ -18,9 +17,6 @@ public class StringDialogViewModel : DialogViewModelBase<string?>
     set => this.RaiseAndSetIfChanged(ref _stringValue, value);
   }
 
-  public ReactiveCommand<Unit, Unit> Confirm { get; }
-  public ReactiveCommand<Unit, Unit> Cancel { get; }
-
   public StringDialogViewModel(
     IToastService toastService,
     IPathService pathService,
@@ -31,8 +27,8 @@ public class StringDialogViewModel : DialogViewModelBase<string?>
     _stringValue = startingValue;
 
 
-    Confirm = ReactiveCommand.Create(ExecuteConfirm);
-    Cancel = ReactiveCommand.Create(() => Close?.Invoke(null));
+    ConfirmCommand = ReactiveCommand.Create(ExecuteConfirm);
+    CloseCommand = ReactiveCommand.Create(() => Close?.Invoke(null));
   }
 
   private void ExecuteConfirm()

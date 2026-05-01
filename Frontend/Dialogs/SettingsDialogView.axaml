@@ -89,12 +89,14 @@
                 <Button
                     Margin="0,16,0,0"
                     HorizontalAlignment="Left"
-                    Command="{Binding SaveCommand}"
+                    Classes="MainButton Primary"
+                    Command="{Binding ConfirmCommand}"
                     Content="Save" />
 
                 <Button
                     Margin="0,16,0,0"
                     HorizontalAlignment="Left"
+                    Classes="MainButton"
                     Command="{Binding CloseCommand}"
                     Content="Close" />
             </StackPanel>

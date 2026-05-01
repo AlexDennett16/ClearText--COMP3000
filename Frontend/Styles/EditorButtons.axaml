@@ -1,5 +1,5 @@
 <Styles xmlns="https://github.com/avaloniaui">
-    <Style Selector="Button.EditorButton">
+    <Style Selector="Button.MainButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="#6E6E6E" />
         <Setter Property="BorderThickness" Value="1" />
@@ -9,11 +9,11 @@
         <Setter Property="Foreground" Value="White" />
     </Style>
 
-    <Style Selector="Button.EditorButton:pointerover">
+    <Style Selector="Button.MainButton:pointerover">
         <Setter Property="Background" Value="#22FFFFFF" />
     </Style>
 
-    <Style Selector="Button.EditorButton.Primary">
+    <Style Selector="Button.MainButton.Primary">
         <Setter Property="Background" Value="#2F6FED" />
         <Setter Property="BorderBrush" Value="#2F6FED" />
     </Style>

@@ -1,0 +1,57 @@
+<UserControl
+    x:Class="ClearText.Dialogs.ConfirmCancelDialogView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:ClearText.Dialogs"
+    x:DataType="vm:ConfirmCancelDialogViewModel">
+
+    <Border
+        MinWidth="400"
+        MaxWidth="600"
+        Padding="24"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Background="#4D4D4D"
+        CornerRadius="16">
+
+        <Grid RowDefinitions="Auto,Auto">
+
+            <!--  Header  -->
+            <StackPanel Grid.Row="0" Spacing="16">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontSize="20"
+                    FontWeight="SemiBold"
+                    Foreground="#FFF"
+                    Text="{Binding Title}" />
+
+                <Border Height="1" Background="#000" />
+
+                <TextBlock
+                    FontSize="16"
+                    Foreground="#FFF"
+                    Text="{Binding Message}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!--  Buttons  -->
+            <StackPanel
+                Grid.Row="1"
+                Margin="0,24,0,0"
+                HorizontalAlignment="Left"
+                Orientation="Horizontal"
+                Spacing="16">
+
+                <Button
+                    Classes="MainButton Primary"
+                    Command="{Binding CloseCommand}"
+                    Content="Cancel" />
+
+                <Button
+                    Classes="MainButton"
+                    Command="{Binding ConfirmCommand}"
+                    Content="Confirm" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

@@ -103,31 +103,15 @@ public class TextMarkerService(TextDocument document) : BaseService, IBackground
             cursor += token.Length;
         }
 
-        /*Console.WriteLine("[TextMarkerService] Applying markers:");
-        for (var i = 0; i < tokens.Count; i++)
-        {
-            Console.WriteLine(
-                $"  Token[{i}] '{tokens[i]}' at offset {tokenOffsets[i]}"
-            );
-        }*/
-
         foreach (var error in errors)
         {
             if (error.Index < 0 || error.Index >= tokens.Count)
             {
-                /*Console.WriteLine(
-                    $"[TextMarkerService] Invalid index {error.Index}"
-                );*/
                 continue;
             }
 
             var start = tokenOffsets[error.Index];
             var length = tokens[error.Index].Length;
-
-            /*Console.WriteLine(
-                $"[TextMarkerService] Marking '{tokens[error.Index]}' " +
-                $"at {start} length {length}"
-            );*/
 
             AddMarker(start, length, Colors.Red, error);
         }

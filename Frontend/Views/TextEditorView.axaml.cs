@@ -45,7 +45,7 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
                     ViewModel.DocumentText = Editor.Document.Text;
             };
 
-            this.WhenAnyValue(v => v.ViewModel!.Errors)
+            this.WhenAnyValue(v => v.ViewModel!.FilteredErrors)
                 .Subscribe(_ =>
                 {
                     if (ViewModel != null)
@@ -123,6 +123,21 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         }
     }
 
+    private void IgnoreOnceOnClick(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel == null || _activeMarker == null)
+            return;
+
+        ViewModel.IgnoreOnce(_activeMarker.Error);
+
+        _markerService.Remove(_activeMarker);
+        _activeMarker = null;
+        Editor.TextArea.TextView.Redraw();
+
+        var flyout = (Flyout)Editor.GetValue(FlyoutBase.AttachedFlyoutProperty)!;
+        flyout.Hide();
+    }
+
     private void LoadSquigglies(TextEditorViewModel vm)
     {
 
@@ -137,7 +152,7 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         _markerService.LoadSquigglies(
         text,
         tokens,
-        vm.Errors ?? []
+        vm.FilteredErrors ?? []
         );
 
         Editor.TextArea.TextView.Redraw();

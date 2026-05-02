@@ -30,6 +30,11 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    <StackPanel>
+                        <Separator />
+                        <Button Click="IgnoreOnceOnClick" Content="Ignore Once" />
+                    </StackPanel>
+
                 </StackPanel>
             </Flyout>
         </ResourceDictionary>

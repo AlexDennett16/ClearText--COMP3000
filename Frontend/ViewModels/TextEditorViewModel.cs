@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using System.Timers;
@@ -38,7 +39,9 @@ public class TextEditorViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> AnalyseGrammarCommand { get; }
     public ReactiveCommand<Unit, Task> ShowDocumentStatsCommand { get; }
 
-    private IReadOnlyList<ClearTextError>? _errors = [];
+    private IReadOnlyList<ClearTextError>? _filteredErrors = [];
+    private IReadOnlyList<ClearTextError>? _allErrors;
+    private readonly HashSet<IgnoreOnceKey> _ignoredOnce = [];
     private IReadOnlyList<string> _tokens = [];
     public IReadOnlyList<string> Tokens
     {
@@ -46,10 +49,10 @@ public class TextEditorViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _tokens, value);
     }
 
-    public IReadOnlyList<ClearTextError>? Errors
+    public IReadOnlyList<ClearTextError>? FilteredErrors
     {
-        get => _errors;
-        private set => this.RaiseAndSetIfChanged(ref _errors, value);
+        get => _filteredErrors;
+        private set => this.RaiseAndSetIfChanged(ref _filteredErrors, value);
     }
 
     public TextEditorViewModel(
@@ -119,6 +122,25 @@ public class TextEditorViewModel : ViewModelBase
         }
     }
 
+    private IReadOnlyList<ClearTextError> ApplyIgnoreOnce(
+    IReadOnlyList<ClearTextError> errors)
+    {
+        return errors
+            .Where(e =>
+                !_ignoredOnce.Contains(
+                    new IgnoreOnceKey(e.Token, e.Index, e.Type)))
+            .ToList();
+    }
+
+    public void IgnoreOnce(ClearTextError error)
+    {
+        var key = new IgnoreOnceKey(error.Token, error.Index, error.Type);
+        _ignoredOnce.Add(key);
+
+        if (_allErrors != null)
+            FilteredErrors = ApplyIgnoreOnce(_allErrors);
+    }
+
     private async Task HandleNavigateBack()
     {
         var dialog = _exitDocumentDialogFactory.Create(
@@ -156,9 +178,10 @@ public class TextEditorViewModel : ViewModelBase
             var sw = Stopwatch.StartNew();
             var response = await _grammarService.CheckGrammarAsync(DocumentText);
             sw.Stop();
-            Errors = response?.Errors;
+            _allErrors = response?.Errors ?? [];
             Tokens = response?.Tokens ?? [];
-            _toastService.CreateAndShowInfoToast($"Grammar analysis completed in {sw.ElapsedMilliseconds} ms, found {response?.Errors.Count ?? 0} errors.");
+            FilteredErrors = ApplyIgnoreOnce(_allErrors);
+            _toastService.CreateAndShowInfoToast($"Grammar analysis completed in {sw.ElapsedMilliseconds} ms, found {FilteredErrors.Count} errors.");
         }
         catch (GrammarServiceNotReadyException)
         {
@@ -197,4 +220,10 @@ public class TextEditorViewModel : ViewModelBase
 
         base.Dispose(disposing);
     }
+
+    public readonly record struct IgnoreOnceKey(
+    string Token,
+    int Index,
+    string Type
+    );
 }

@@ -27,8 +27,6 @@ public class TextEditorViewModel : ViewModelBase
     private readonly IExitDocumentDialogFactory _exitDocumentDialogFactory;
     private readonly Timer _autoSaveTimer;
     private string _documentText = string.Empty;
-    private bool _isGrammarChecking;
-
     public string DocumentText
     {
         get => _documentText;

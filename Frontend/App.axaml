@@ -20,6 +20,7 @@
     <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
     <StyleInclude Source="avares://ClearText/Styles/SelectionButton.axaml" />
     <StyleInclude Source="avares://ClearText/Styles/EditorButtons.axaml" />
+    <StyleInclude Source="avares://ClearText/Styles/Flyouts.axaml" />
   </Application.Styles>
 
   <Application.Resources>

@@ -14,14 +14,19 @@
         <ResourceDictionary>
             <Flyout x:Key="ErrorFlyout">
                 <StackPanel Margin="8">
-                    <TextBlock x:Name="ErrorMessage" FontWeight="Bold" />
+                    <TextBlock
+                        x:Name="ErrorMessage"
+                        Margin="0,0,0,8"
+                        FontWeight="Bold" />
                     <ItemsControl x:Name="SuggestionList">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button
-                                    Margin="0,4,0,0"
-                                    Click="SuggestionButtonOnClick"
-                                    Content="{Binding}" />
+                                <StackPanel>
+                                    <Button
+                                        Margin="4"
+                                        Click="SuggestionButtonOnClick"
+                                        Content="{Binding}" />
+                                </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

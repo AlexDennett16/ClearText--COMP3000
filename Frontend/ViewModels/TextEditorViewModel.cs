@@ -8,6 +8,7 @@ using ClearText.BaseTypes.BaseViewModels;
 using ClearText.DataObjects;
 using ClearText.DialogFactoriesInterfaces;
 using ClearText.Enums;
+using ClearText.Exceptions;
 using ClearText.Interfaces;
 using ReactiveUI;
 
@@ -77,7 +78,7 @@ public class TextEditorViewModel : ViewModelBase
         DocumentText = _documentHandlingService.LoadText(filePath);
         ReturnCommand = ReactiveCommand.CreateFromTask(HandleNavigateBack);
         SaveCommand = ReactiveCommand.CreateFromTask(ManualSaveDocument);
-        AnalyseGrammarCommand = ReactiveCommand.Create(AnalyseGrammarAction);
+        AnalyseGrammarCommand = ReactiveCommand.CreateFromTask(AnalyseGrammarAsync);
         ShowDocumentStatsCommand = ReactiveCommand.Create(ShowDocumentStats);
 
         Console.WriteLine($"AutoSaveEnabled: {settingsService.AutoSaveEnabled}, AutoSaveInterval: {settingsService.AutoSaveInterval}");
@@ -91,7 +92,7 @@ public class TextEditorViewModel : ViewModelBase
         }
 
         //Run grammar check on entry to populate squigglies immediately
-        AnalyseGrammarAction();
+        _ = AnalyseGrammarAsync();
     }
 
     private async Task ManualSaveDocument()
@@ -150,44 +151,34 @@ public class TextEditorViewModel : ViewModelBase
         }
     }
 
-    private async void AnalyseGrammarAction()
+    private async Task AnalyseGrammarAsync()
     {
         try
         {
-            if (_isGrammarChecking)
-            {
-                _toastService.CreateAndShowInfoToast("Grammar analysis already running.");
-                return;
-            }
-
-            try
-            {
-                _isGrammarChecking = true;
-                _toastService.CreateAndShowInfoToast("Analyzing grammar...");
-
-                var sw = Stopwatch.StartNew();
-                var response = await _grammarService.CheckGrammarAsync(DocumentText);
-                sw.Stop();
-
-                Errors = response?.Errors;
-                Tokens = response?.Tokens ?? [];
-                _toastService.CreateAndShowInfoToast($"Grammar analysis took {sw.ElapsedMilliseconds}ms");
-            }
-            catch (Exception e)
-            {
-                _toastService.CreateAndShowErrorToast("Grammar analysis failed, with error: " + e.Message);
-                throw;
-            }
-            finally
-            {
-                _isGrammarChecking = false;
-            }
+            var sw = Stopwatch.StartNew();
+            var response = await _grammarService.CheckGrammarAsync(DocumentText);
+            sw.Stop();
+            Errors = response?.Errors;
+            Tokens = response?.Tokens ?? [];
+            _toastService.CreateAndShowInfoToast($"Grammar analysis completed in {sw.ElapsedMilliseconds} ms, found {response?.Errors.Count ?? 0} errors.");
         }
-        catch (Exception e)
+        catch (GrammarServiceNotReadyException)
         {
-            _toastService.CreateAndShowErrorToast("An error occurred during grammar analysis: " + e.Message);
+            _toastService.CreateAndShowErrorToast(
+                "Grammar service is starting. Please try again in a moment.");
+        }
+        catch (GrammarServiceUnavailableException ex)
+        {
+            _toastService.CreateAndShowErrorToast(
+                "Grammar service failed to start: " + ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _toastService.CreateAndShowErrorToast(
+                "Grammar analysis failed: " + ex.Message);
         }
     }
+
 
     private async Task ShowDocumentStats()
     {

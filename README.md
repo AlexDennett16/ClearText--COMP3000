@@ -14,7 +14,7 @@ This project was developed as part of the COMP3000 Computing Project at the Univ
 
 ### Setup
 1. Clone the repo
-2. CD into \ClearText--COMP3000\Backend
+2. CD into \Backend\
 3. Install Python dependencies:
    ```bash
    pip install -r requirements.txt

@@ -45,6 +45,7 @@ public partial class App : Application
             services.AddSingleton<IDocumentStatsService, DocumentStatsService>();
             services.AddSingleton<ISettingsService, SettingsService>();
             services.AddSingleton<IFolderPickerService, FolderPickerService>();
+            services.AddSingleton<IDocumentHandlingService, DocumentHandlingService>();
 
             services.AddSingleton<IGrammarService, GrammarService>();
             // Register GrammarService as a Python startup task

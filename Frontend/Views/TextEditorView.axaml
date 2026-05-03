@@ -151,8 +151,9 @@
             Grid.Row="1"
             Grid.Column="0"
             Grid.ColumnSpan="2"
-            MinHeight="600"
-            Margin="100,40,100,40"
+            Margin="100,20,100,20"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
             BorderBrush="Gray"
             BorderThickness="2">
             <avaloniaEdit:TextEditor

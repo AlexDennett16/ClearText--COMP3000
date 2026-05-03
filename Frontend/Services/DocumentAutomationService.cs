@@ -14,7 +14,7 @@ public sealed class DocumentAutomationService : BaseService, IDocumentAutomation
     public event EventHandler? AutoSaveRequested;
     public event EventHandler? AutoGrammarCheckRequested;
 
-    private readonly SettingsConfig _settingsConfig;
+    private readonly ISettingsService _settingsConfig;
 
 
     private readonly Timer _autoSaveTimer;
@@ -24,7 +24,7 @@ public sealed class DocumentAutomationService : BaseService, IDocumentAutomation
     public DocumentAutomationService(
         ISettingsService settings)
     {
-        _settingsConfig = settings.Config;
+        _settingsConfig = settings;
 
         _autoSaveTimer = new Timer();
         _autoSaveTimer.Elapsed += (_, _) => AutoSaveRequested?.Invoke(this, EventArgs.Empty);
@@ -39,17 +39,17 @@ public sealed class DocumentAutomationService : BaseService, IDocumentAutomation
     private void ApplySettings()
     {
         _autoSaveTimer.Interval =
-            _settingsConfig.AutoSaveInterval * 60 * 1000;
+            _settingsConfig.Config.AutoSaveInterval * 60 * 1000;
 
         _grammarCheckTimer.Interval =
-            _settingsConfig.AutoGrammarCheckInterval * 60 * 1000;
+            _settingsConfig.Config.AutoGrammarCheckInterval * 60 * 1000;
     }
 
 
     public void Start()
     {
-        _autoSaveTimer.Enabled = _settingsConfig.AutoSaveEnabled;
-        _grammarCheckTimer.Enabled = _settingsConfig.AutoGrammarCheckEnabled;
+        _autoSaveTimer.Enabled = _settingsConfig.Config.AutoSaveEnabled;
+        _grammarCheckTimer.Enabled = _settingsConfig.Config.AutoGrammarCheckEnabled;
     }
 
     public void Stop()

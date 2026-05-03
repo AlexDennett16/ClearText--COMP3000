@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text.Json;
 using ClearText.BaseTypes;
@@ -12,7 +13,7 @@ namespace ClearText.Services;
 public sealed class SettingsService : BaseService, ISettingsService
 {
     private readonly string _settingsPath = FilePathFinder.GetAppDataPath(FileIOConstants.SettingsFile);
-    public SettingsConfig Config { get; private set; } = new();
+    public SettingsConfig Config { get; private set; }
     public IToastService _toastService { get; init; }
     public SettingsService(IToastService toastService)
     {
@@ -46,11 +47,18 @@ public sealed class SettingsService : BaseService, ISettingsService
             var config = JsonSerializer.Deserialize<SettingsConfig>(json);
 
             if (config != null)
+            {
                 Config = config;
+            }
+            else
+            {
+                throw new Exception("Failed to deserialize settings config.");
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            // fallback to defaults
+            Console.WriteLine("Error loading settings: " + ex);
+            _toastService.CreateAndShowErrorToast("Failed to load settings, using defaults.");
             Config = new SettingsConfig();
             SaveSettings();
         }

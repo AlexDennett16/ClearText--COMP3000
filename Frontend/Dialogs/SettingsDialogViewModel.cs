@@ -14,36 +14,7 @@ public class SettingsDialogViewModel : DialogViewModelBase<bool>
 
     public Array ThemeOptions { get; } = Enum.GetValues(typeof(AppTheme));
 
-    public bool AutoSaveEnabled
-    {
-        get => WorkingCopy.AutoSaveEnabled;
-        set
-        {
-            if (WorkingCopy.AutoSaveEnabled != value)
-            {
-                WorkingCopy.AutoSaveEnabled = value;
-                this.RaisePropertyChanged();
-            }
-        }
-    }
-
-    public bool AutoGrammarCheckEnabled
-    {
-        get => WorkingCopy.AutoGrammarCheckEnabled;
-        set
-        {
-            if (WorkingCopy.AutoGrammarCheckEnabled != value)
-            {
-                WorkingCopy.AutoGrammarCheckEnabled = value;
-                this.RaisePropertyChanged();
-            }
-        }
-    }
-
-
-
-
-    public SettingsDialogViewModel(ISettingsService settingsService, IToastService toastService)
+    public SettingsDialogViewModel(ISettingsService settingsService)
     {
         WorkingCopy = settingsService.CreateWorkingCopy();
 

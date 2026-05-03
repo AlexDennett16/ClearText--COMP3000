@@ -39,7 +39,7 @@
                 Margin="0,0,0,8"
                 Background="#000" />
 
-            <!--  Options  -->
+            <!--  Autosave Options  -->
             <StackPanel Grid.Row="2" Spacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock VerticalAlignment="Center" Text="Autosave Enabled" />
@@ -60,6 +60,34 @@
                         Maximum="60"
                         Minimum="1"
                         Value="{Binding AutoSaveInterval}" />
+                </StackPanel>
+
+
+                <!--  Divider  -->
+                <Border
+                    Height="1"
+                    Margin="0,0,0,8"
+                    Background="#000" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock VerticalAlignment="Center" Text="Auto-Grammar Check Enabled" />
+                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding AutoGrammarCheckEnabled}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding AutoGrammarCheckEnabled}"
+                        Text="Auto-Grammar Check Interval (Minutes - Max of 60)" />
+                    <NumericUpDown
+                        MaxWidth="400"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        FormatString="0"
+                        IsVisible="{Binding AutoGrammarCheckEnabled}"
+                        Maximum="60"
+                        Minimum="1"
+                        Value="{Binding AutoGrammarCheckInterval}" />
                 </StackPanel>
 
 

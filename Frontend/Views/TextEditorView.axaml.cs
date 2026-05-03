@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -32,6 +33,7 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         this.WhenActivated(disposables =>
         {
             this.WhenAnyValue(v => v.ViewModel!.DocumentText)
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(text =>
                 {
                     if (text != Editor.Document.Text)
@@ -46,6 +48,7 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
             };
 
             this.WhenAnyValue(v => v.ViewModel!.FilteredErrors)
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(_ =>
                 {
                     if (ViewModel != null)

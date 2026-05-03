@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
-using System.Timers;
 using ClearText.BaseTypes.BaseViewModels;
 using ClearText.DataObjects;
 using ClearText.DialogFactoriesInterfaces;
@@ -24,9 +24,9 @@ public class TextEditorViewModel : ViewModelBase
     private readonly IDocumentStatsService _documentStatsService;
     private readonly INavigationService _navigationService;
     private readonly IDocumentHandlingService _documentHandlingService;
+    private readonly IDocumentAutomationService _documentAutomationService;
     private readonly IDataDisplayDialogFactory _dataDisplayDialogFactory;
     private readonly IExitDocumentDialogFactory _exitDocumentDialogFactory;
-    private readonly Timer _autoSaveTimer;
     private string _documentText = string.Empty;
     public string DocumentText
     {
@@ -64,6 +64,7 @@ public class TextEditorViewModel : ViewModelBase
         ISettingsService settingsService,
         INavigationService navigationService,
         IDocumentHandlingService documentHandlingService,
+        IDocumentAutomationService documentAutomationService,
         IDataDisplayDialogFactory dataDisplayDialogFactory,
         IExitDocumentDialogFactory exitDocumentDialogFactory)
     {
@@ -74,47 +75,29 @@ public class TextEditorViewModel : ViewModelBase
         _documentStatsService = documentStatsService;
         _navigationService = navigationService;
         _documentHandlingService = documentHandlingService;
+        _documentAutomationService = documentAutomationService;
         _dataDisplayDialogFactory = dataDisplayDialogFactory;
         _exitDocumentDialogFactory = exitDocumentDialogFactory;
         DocumentText = _documentHandlingService.LoadText(filePath);
         ReturnCommand = ReactiveCommand.CreateFromTask(HandleNavigateBack);
-        SaveCommand = ReactiveCommand.CreateFromTask(ManualSaveDocument);
+        SaveCommand = ReactiveCommand.CreateFromTask(SaveDocument);
         AnalyseGrammarCommand = ReactiveCommand.CreateFromTask(AnalyseGrammarAsync);
         ShowDocumentStatsCommand = ReactiveCommand.Create(ShowDocumentStats);
 
         Console.WriteLine($"AutoSaveEnabled: {settingsService.AutoSaveEnabled}, AutoSaveInterval: {settingsService.AutoSaveInterval}");
-        _autoSaveTimer = new Timer(settingsService.AutoSaveInterval * 60 * 1000); // Convert minutes to milliseconds
-        _autoSaveTimer.Elapsed += AutoSaveDocument;
-        _autoSaveTimer.AutoReset = true;
 
-        if (settingsService.AutoSaveEnabled)
-        {
-            _autoSaveTimer.Start();
-        }
+        SetUpTimers();
 
         //Run grammar check on entry to populate squigglies immediately
         _ = AnalyseGrammarAsync();
     }
 
-    private async Task ManualSaveDocument()
+    private async Task SaveDocument()
     {
         try
         {
             await _documentHandlingService.SaveTextAsync(_filePath, DocumentText);
             _toastService.CreateAndShowInfoToast("Document saved.");
-        }
-        catch (Exception ex)
-        {
-            _toastService.CreateAndShowErrorToast("Auto-save failed: " + ex.Message);
-        }
-    }
-
-    private async void AutoSaveDocument(object? sender, ElapsedEventArgs e)
-    {
-        try
-        {
-            await _documentHandlingService.SaveTextAsync(_filePath, DocumentText);
-            _toastService.CreateAndShowInfoToast("Document auto-saved.");
         }
         catch (Exception ex)
         {
@@ -149,7 +132,6 @@ public class TextEditorViewModel : ViewModelBase
         );
         var navResult = await _dialogService.ShowAsync(dialog);
 
-
         switch (navResult)
         {
             case ExitDocumentResult.SaveAndExit:
@@ -181,7 +163,8 @@ public class TextEditorViewModel : ViewModelBase
             _allErrors = response?.Errors ?? [];
             Tokens = response?.Tokens ?? [];
             FilteredErrors = ApplyIgnoreOnce(_allErrors);
-            _toastService.CreateAndShowInfoToast($"Grammar analysis completed in {sw.ElapsedMilliseconds} ms, found {FilteredErrors.Count} errors.");
+            _toastService.CreateAndShowInfoToast($"Grammar analysis completed in {sw.ElapsedMilliseconds} ms, found {FilteredErrors.Count} error{(FilteredErrors.Count == 1 ? "" : "s")}."
+);
         }
         catch (GrammarServiceNotReadyException)
         {
@@ -200,7 +183,6 @@ public class TextEditorViewModel : ViewModelBase
         }
     }
 
-
     private async Task ShowDocumentStats()
     {
         var stats = _documentStatsService.GetDocumentStats(DocumentText);
@@ -208,15 +190,35 @@ public class TextEditorViewModel : ViewModelBase
         await _dialogService.ShowAsync(dialog);
     }
 
+
+    private void OnAutoSaveRequested(object? sender, EventArgs e)
+    {
+        _ = SaveDocument();
+    }
+
+    private void OnAutoGrammarCheckRequested(object? sender, EventArgs e)
+    {
+        _ = AnalyseGrammarAsync();
+    }
+
+
+    private void SetUpTimers()
+    {
+        _documentAutomationService.AutoSaveRequested += OnAutoSaveRequested;
+        _documentAutomationService.AutoGrammarCheckRequested += OnAutoGrammarCheckRequested;
+
+        _documentAutomationService.Start();
+    }
+
     protected override void Dispose(bool disposing)
     {
+        if (!disposing) return;
 
-        if (!disposing)
-            return;
+        _documentAutomationService.AutoSaveRequested -= OnAutoSaveRequested;
+        _documentAutomationService.AutoGrammarCheckRequested -= OnAutoGrammarCheckRequested;
+        _documentAutomationService.Stop();
+        _documentAutomationService.Dispose();
 
-        _autoSaveTimer.Elapsed -= AutoSaveDocument;
-        _autoSaveTimer.Stop();
-        _autoSaveTimer.Dispose();
 
         base.Dispose(disposing);
     }

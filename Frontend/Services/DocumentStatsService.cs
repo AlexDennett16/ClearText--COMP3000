@@ -6,7 +6,7 @@ using ClearText.Interfaces;
 
 namespace ClearText.Services;
 
-public class DocumentStatsService : BaseService, IDocumentStatsService
+public sealed class DocumentStatsService : BaseService, IDocumentStatsService
 {
     public DocumentStats GetDocumentStats(string documentText)
     {

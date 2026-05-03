@@ -9,7 +9,7 @@ using ClearText.Toasts;
 
 namespace ClearText.Services;
 
-public class ToastService : BaseService, IToastService
+public sealed class ToastService : BaseService, IToastService
 {
     private const int MaxToastCount = 5;
     public ObservableCollection<ToastNotificationViewModelBase> Toasts { get; } = [];

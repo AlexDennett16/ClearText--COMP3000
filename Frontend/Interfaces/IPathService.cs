@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using ClearText.BaseTypes;
 
 namespace ClearText.Interfaces;
 
-public interface IPathService : IBaseServiceInterface
+public interface IPathService
 {
   IReadOnlyList<string> PageFilePaths { get; }
 

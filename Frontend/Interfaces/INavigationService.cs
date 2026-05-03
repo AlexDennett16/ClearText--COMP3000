@@ -1,3 +1,4 @@
+
 namespace ClearText.Interfaces;
 
 public interface INavigationService

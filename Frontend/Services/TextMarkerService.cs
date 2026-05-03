@@ -9,7 +9,7 @@ using ClearText.DataObjects;
 
 namespace ClearText.Services;
 
-public class TextMarkerService(TextDocument document) : BaseService, IBackgroundRenderer
+public sealed class TextMarkerService(TextDocument document) : BaseService, IBackgroundRenderer
 {
     private readonly TextSegmentCollection<TextMarker> _markers = new(document);
 

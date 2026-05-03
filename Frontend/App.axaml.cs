@@ -38,7 +38,7 @@ public partial class App : Application
             services.AddSingleton<IUiHost>(sp => sp.GetRequiredService<MainWindow>());
             services.AddSingleton<INavigationService, NavigationService>();
 
-            // Services
+            // Singleton Services
             services.AddSingleton<IToastService, ToastService>();
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IPathService, PathService>();
@@ -46,11 +46,15 @@ public partial class App : Application
             services.AddSingleton<ISettingsService, SettingsService>();
             services.AddSingleton<IFolderPickerService, FolderPickerService>();
             services.AddSingleton<IDocumentHandlingService, DocumentHandlingService>();
-
             services.AddSingleton<IGrammarService, GrammarService>();
             // Register GrammarService as a Python startup task
             services.AddSingleton<IPythonStartupTask>(
                 sp => (GrammarService)sp.GetRequiredService<IGrammarService>());
+
+            // Transient Services
+            services.AddTransient<IDocumentAutomationService, DocumentAutomationService>();
+
+
 
 
             // ViewModels

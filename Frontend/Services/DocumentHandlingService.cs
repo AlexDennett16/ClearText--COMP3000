@@ -13,89 +13,89 @@ using WordRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using WordParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using WordText = DocumentFormat.OpenXml.Wordprocessing.Text;
 using System.Linq;
+using ClearText.BaseTypes;
 
-namespace ClearText.Services
+namespace ClearText.Services;
+
+public sealed class DocumentHandlingService(IPathService pathService) : BaseService, IDocumentHandlingService
 {
-    public sealed class DocumentHandlingService(IPathService pathService) : IDocumentHandlingService
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
+    private readonly List<WordRun> _originalRuns = [];
+
+    public string LoadText(string path)
     {
-        private readonly SemaphoreSlim _saveLock = new(1, 1);
-        private readonly List<WordRun> _originalRuns = [];
+        using var doc = WordprocessingDocument.Open(path, false);
+        var body = doc.MainDocumentPart?.Document?.Body ??
+                   throw new InvalidOperationException("The document body is null.");
 
-        public string LoadText(string path)
+        _originalRuns.Clear();
+        var sb = new StringBuilder();
+        var paragraphs = body.Elements<WordParagraph>().ToList();
+
+        foreach (var paragraph in paragraphs)
         {
-            using var doc = WordprocessingDocument.Open(path, false);
-            var body = doc.MainDocumentPart?.Document?.Body ??
-                       throw new InvalidOperationException("The document body is null.");
-
-            _originalRuns.Clear();
-            var sb = new StringBuilder();
-            var paragraphs = body.Elements<WordParagraph>().ToList();
-
-            foreach (var paragraph in paragraphs)
+            foreach (var run in paragraph.Elements<WordRun>())
             {
-                foreach (var run in paragraph.Elements<WordRun>())
-                {
-                    _originalRuns.Add((WordRun)run.CloneNode(true));
-                    sb.Append(run.InnerText);
-                }
+                _originalRuns.Add((WordRun)run.CloneNode(true));
+                sb.Append(run.InnerText);
             }
-
-            return sb.ToString();
         }
 
-        public async Task SaveTextAsync(string filePath, string documentText)
+        return sb.ToString();
+    }
+
+    public async Task SaveTextAsync(string filePath, string documentText)
+    {
+        await _saveLock.WaitAsync();
+        try
         {
-            await _saveLock.WaitAsync();
-            try
+            using var doc = WordprocessingDocument.Open(filePath, true);
+            var body = doc.MainDocumentPart?.Document?.Body
+                       ?? throw new InvalidOperationException("The document body is null.");
+
+            body.RemoveAllChildren();
+
+            var textIndex = 0;
+
+            foreach (var originalRun in _originalRuns)
             {
-                using var doc = WordprocessingDocument.Open(filePath, true);
-                var body = doc.MainDocumentPart?.Document?.Body
-                           ?? throw new InvalidOperationException("The document body is null.");
+                var newRun = (WordRun)originalRun.CloneNode(true);
 
-                body.RemoveAllChildren();
+                var length = originalRun.InnerText.Length;
+                if (textIndex + length > documentText.Length)
+                    length = documentText.Length - textIndex;
 
-                var textIndex = 0;
+                if (length <= 0)
+                    break;
 
-                foreach (var originalRun in _originalRuns)
-                {
-                    var newRun = (WordRun)originalRun.CloneNode(true);
+                var runText = documentText.Substring(textIndex, length);
+                textIndex += length;
 
-                    var length = originalRun.InnerText.Length;
-                    if (textIndex + length > documentText.Length)
-                        length = documentText.Length - textIndex;
+                newRun.RemoveAllChildren<WordText>();
+                newRun.AppendChild(new WordText(runText));
 
-                    if (length <= 0)
-                        break;
-
-                    var runText = documentText.Substring(textIndex, length);
-                    textIndex += length;
-
-                    newRun.RemoveAllChildren<WordText>();
-                    newRun.AppendChild(new WordText(runText));
-
-                    var paragraph = new WordParagraph();
-                    paragraph.Append(newRun);
-                    body.Append(paragraph);
-                }
-
-                if (textIndex < documentText.Length)
-                {
-                    var remaining = documentText[textIndex..];
-                    body.Append(new WordParagraph(new WordRun(new WordText(remaining))));
-                }
-
-                doc.MainDocumentPart.Document.Save();
-                pathService.TouchPage(filePath);
+                var paragraph = new WordParagraph();
+                paragraph.Append(newRun);
+                body.Append(paragraph);
             }
-            catch (IOException ex)
+
+            if (textIndex < documentText.Length)
             {
-                // Quietly log external IO error
-                Debug.WriteLine($"Save skipped due to file lock: {ex.Message}");
+                var remaining = documentText[textIndex..];
+                body.Append(new WordParagraph(new WordRun(new WordText(remaining))));
             }
-            finally
-            {
-                _saveLock.Release();
-            }
+
+            doc.MainDocumentPart.Document.Save();
+            pathService.TouchPage(filePath);
+        }
+        catch (IOException ex)
+        {
+            // Quietly log external IO error
+            Debug.WriteLine($"Save skipped due to file lock: {ex.Message}");
+        }
+        finally
+        {
+            _saveLock.Release();
         }
     }
 }

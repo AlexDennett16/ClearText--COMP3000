@@ -3,11 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using ClearText.BaseTypes;
 using ClearText.Interfaces;
 
 namespace ClearText.Services;
 
-public class FolderPickerService(IUiHost host) : IFolderPickerService
+public sealed class FolderPickerService(IUiHost host) : BaseService, IFolderPickerService
 {
     private readonly Window _window = (Window)host;
 

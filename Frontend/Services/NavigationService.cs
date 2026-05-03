@@ -1,6 +1,7 @@
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using ClearText.BaseTypes;
 using ClearText.Interfaces;
 using ClearText.ViewModels;
 using ClearText.ViewModels.Toolbar;
@@ -9,12 +10,12 @@ using ReactiveUI;
 namespace ClearText.Services;
 
 
-public class NavigationService(
+public sealed class NavigationService(
     IUiHost host,
     Func<string, TextEditorViewModel> editorFactory,
     Func<PageSelectionViewModel> selectionFactory,
     Func<DashboardToolbarViewModel> dashboardToolbarFactory,
-    Func<string, EditorToolbarViewModel> editorToolbarFactory) : INavigationService, IDisposable
+    Func<string, EditorToolbarViewModel> editorToolbarFactory) : BaseService, INavigationService
 {
     private readonly CompositeDisposable _navigationScope = [];
 
@@ -53,11 +54,11 @@ public class NavigationService(
             toolbar.Dispose();
     }
 
-    public void Dispose()
+    protected override void Dispose(bool disposing)
     {
         ResetScope();
         _navigationScope.Dispose();
-        GC.SuppressFinalize(this);
+        base.Dispose(disposing);
     }
 
     private void WireDashboardSearch(

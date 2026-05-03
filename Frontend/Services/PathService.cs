@@ -10,7 +10,7 @@ using ClearText.Utilities;
 
 namespace ClearText.Services;
 
-public class PathService : BaseService, IPathService
+public sealed class PathService : BaseService, IPathService
 {
     private readonly string _storagePath;
     private readonly List<string> _cachedPaths;

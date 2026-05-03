@@ -12,7 +12,7 @@ using ClearText.Utilities;
 
 namespace ClearText.Services;
 
-public class GrammarService : BaseService, IGrammarService, IPythonStartupTask
+public sealed class GrammarService : BaseService, IGrammarService, IPythonStartupTask
 {
     public bool IsReady { get; private set; }
     public Exception? StartupError { get; private set; }

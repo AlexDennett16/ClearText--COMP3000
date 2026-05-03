@@ -1,7 +1,9 @@
 using System;
 using System.Timers;
 using ClearText.BaseTypes;
+using ClearText.DataObjects;
 using ClearText.Interfaces;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace ClearText.Services;
 
@@ -12,7 +14,7 @@ public sealed class DocumentAutomationService : BaseService, IDocumentAutomation
     public event EventHandler? AutoSaveRequested;
     public event EventHandler? AutoGrammarCheckRequested;
 
-    private readonly ISettingsService _settings;
+    private readonly ISettingsService _settingsConfig;
 
 
     private readonly Timer _autoSaveTimer;
@@ -22,7 +24,7 @@ public sealed class DocumentAutomationService : BaseService, IDocumentAutomation
     public DocumentAutomationService(
         ISettingsService settings)
     {
-        _settings = settings;
+        _settingsConfig = settings;
 
         _autoSaveTimer = new Timer();
         _autoSaveTimer.Elapsed += (_, _) => AutoSaveRequested?.Invoke(this, EventArgs.Empty);
@@ -37,17 +39,17 @@ public sealed class DocumentAutomationService : BaseService, IDocumentAutomation
     private void ApplySettings()
     {
         _autoSaveTimer.Interval =
-            _settings.AutoSaveInterval * 60 * 1000;
+            _settingsConfig.Config.AutoSaveInterval * 60 * 1000;
 
         _grammarCheckTimer.Interval =
-            _settings.AutoGrammarCheckInterval * 60 * 1000;
+            _settingsConfig.Config.AutoGrammarCheckInterval * 60 * 1000;
     }
 
 
     public void Start()
     {
-        _autoSaveTimer.Enabled = _settings.AutoSaveEnabled;
-        _grammarCheckTimer.Enabled = _settings.AutoGrammarCheckEnabled;
+        _autoSaveTimer.Enabled = _settingsConfig.Config.AutoSaveEnabled;
+        _grammarCheckTimer.Enabled = _settingsConfig.Config.AutoGrammarCheckEnabled;
     }
 
     public void Stop()

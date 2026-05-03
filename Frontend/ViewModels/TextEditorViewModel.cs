@@ -83,7 +83,7 @@ public class TextEditorViewModel : ViewModelBase
         AnalyseGrammarCommand = ReactiveCommand.CreateFromTask(AnalyseGrammarAsync);
         ShowDocumentStatsCommand = ReactiveCommand.Create(ShowDocumentStats);
 
-        Console.WriteLine($"AutoSaveEnabled: {settingsService.AutoSaveEnabled}, AutoSaveInterval: {settingsService.AutoSaveInterval}");
+        Console.WriteLine($"AutoSaveEnabled: {settingsService.Config.AutoSaveEnabled}, AutoSaveInterval: {settingsService.Config.AutoSaveInterval}");
 
         SetUpTimers();
 

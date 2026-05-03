@@ -15,6 +15,7 @@ public static class FilePathFinder
     }
 
     //Finds the relevant Python File Paths
+    //Ugly return tuple, but is only used in one place and avoids the need for a custom struct 
     internal static (string PythonExe, string WorkingDirectory) LoadPythonFilePath()
     {
         var baseDir = AppContext.BaseDirectory;

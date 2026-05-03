@@ -9,7 +9,8 @@ using ReactiveUI;
 
 namespace ClearText.Services;
 
-
+// Service responsible for handling navigation between main and toolbar ViewModels
+// Responsible for disposing old ViewModels and wiring up values between the Toolbar and Main content
 public sealed class NavigationService(
     IUiHost host,
     Func<string, TextEditorViewModel> editorFactory,

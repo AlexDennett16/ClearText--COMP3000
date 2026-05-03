@@ -17,6 +17,7 @@ using ClearText.BaseTypes;
 
 namespace ClearText.Services;
 
+// Service responsible for handling loading and saving of .docx documents 
 public sealed class DocumentHandlingService(IPathService pathService) : BaseService, IDocumentHandlingService
 {
     private readonly SemaphoreSlim _saveLock = new(1, 1);

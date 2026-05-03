@@ -10,6 +10,7 @@ using ClearText.Utilities;
 
 namespace ClearText.Services;
 
+// Service responsible for managing the PageViewModel data stored in Appdata
 public sealed class PathService : BaseService, IPathService
 {
     private readonly string _storagePath;
@@ -115,7 +116,7 @@ public sealed class PathService : BaseService, IPathService
     }
 }
 
-public class PageConfig
+internal class PageConfig
 {
     public List<string> Pages { get; set; } = [];
     public string? LastUsedFolder { get; set; }

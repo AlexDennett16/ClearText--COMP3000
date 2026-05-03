@@ -9,6 +9,8 @@ using ClearText.Toasts;
 
 namespace ClearText.Services;
 
+// Service responsible for managing the toasts shown in the application
+// Limit displays to 5 at a time
 public sealed class ToastService : BaseService, IToastService
 {
     private const int MaxToastCount = 5;

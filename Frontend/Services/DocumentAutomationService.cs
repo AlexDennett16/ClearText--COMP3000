@@ -5,6 +5,7 @@ using ClearText.Interfaces;
 
 namespace ClearText.Services;
 
+// Service responsible for managing document automation features like auto-saving and auto grammar checking.
 public sealed class DocumentAutomationService : BaseService, IDocumentAutomationService
 {
 

@@ -53,7 +53,8 @@ public class PythonStartUp
     {
         using var http = new HttpClient();
 
-        for (var i = 0; i < 200; i++) // retry for 20 seconds
+        // retry for 20 seconds
+        for (var i = 0; i < 200; i++)
         {
             try
             {
@@ -61,7 +62,8 @@ public class PythonStartUp
                 await new Grammar.GrammarService.GrammarServiceClient(channel)
                     .PingAsync(new Google.Protobuf.WellKnownTypes.Empty());
 
-                return; // server ready
+                // server ready
+                return;
             }
             catch
             {

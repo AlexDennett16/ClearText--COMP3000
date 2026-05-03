@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ClearText.Services;
 
+// Service responsible for showing dialogs in the application. It uses an IUiHost to display the dialogs
 public class DialogService(IUiHost host, IServiceProvider services) : BaseService, IDialogService
 {
   private readonly IUiHost? _host = host;

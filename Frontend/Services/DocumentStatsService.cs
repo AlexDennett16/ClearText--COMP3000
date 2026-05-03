@@ -6,6 +6,7 @@ using ClearText.Interfaces;
 
 namespace ClearText.Services;
 
+// Service responsible for calculating document statistics like word count, character count, and readability scores.
 public sealed class DocumentStatsService : BaseService, IDocumentStatsService
 {
     public DocumentStats GetDocumentStats(string documentText)

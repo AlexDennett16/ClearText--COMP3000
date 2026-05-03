@@ -8,14 +8,15 @@ using ClearText.Utilities;
 
 namespace ClearText.Services;
 
+// Service responsible for managing the application settings stored in Appdata
 public sealed class SettingsService : BaseService, ISettingsService
 {
     private readonly string _settingsPath = FilePathFinder.GetAppDataPath(FileIOConstants.SettingsFile);
-    public bool AutoSaveEnabled { get; set; } = true;
-    public int AutoSaveInterval { get; set; } = 5;
-    public bool AutoGrammarCheckEnabled { get; set; }
-    public int AutoGrammarCheckInterval { get; set; } = 20;
-    public AppTheme CurrentTheme { get; set; } = AppTheme.Dark;
+    public bool AutoSaveEnabled { get; set; } = DefaultSettingsConstants.AutoSaveEnabled;
+    public int AutoSaveInterval { get; set; } = DefaultSettingsConstants.AutoSaveInterval;
+    public bool AutoGrammarCheckEnabled { get; set; } = DefaultSettingsConstants.AutoGrammarCheckEnabled;
+    public int AutoGrammarCheckInterval { get; set; } = DefaultSettingsConstants.AutoGrammarCheckInterval;
+    public AppTheme CurrentTheme { get; set; } = DefaultSettingsConstants.DefaultTheme;
 
     public SettingsService()
     {

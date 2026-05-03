@@ -8,6 +8,7 @@ using ClearText.Interfaces;
 
 namespace ClearText.Services;
 
+// Service responsible for showing a folder picker dialog and returning the selected folder path
 public sealed class FolderPickerService(IUiHost host) : BaseService, IFolderPickerService
 {
     private readonly Window _window = (Window)host;
@@ -33,4 +34,3 @@ public sealed class FolderPickerService(IUiHost host) : BaseService, IFolderPick
         return result.FirstOrDefault()?.Path.LocalPath;
     }
 }
-

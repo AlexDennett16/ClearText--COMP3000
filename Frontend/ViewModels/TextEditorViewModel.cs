@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using ClearText.BaseTypes.BaseViewModels;
 using ClearText.DataObjects;

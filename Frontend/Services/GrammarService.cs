@@ -1,17 +1,19 @@
-using System.Threading.Tasks;
-using ClearText.DataObjects;
-using ClearText.Interfaces;
-using Grammar;
-using System.Linq;
-using ClearTextError = ClearText.DataObjects.ClearTextError;
-using System.Diagnostics;
 using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using ClearText.BaseTypes;
+using ClearText.DataObjects;
 using ClearText.Exceptions;
+using ClearText.Interfaces;
 using ClearText.Utilities;
+using Grammar;
+using ClearTextError = ClearText.DataObjects.ClearTextError;
 
 namespace ClearText.Services;
 
+// Service responsible for communicating with the Python grammar checking service
+//Is now mostly a wrapper of other services and helpers, but still manages lifecycle
 public sealed class GrammarService : BaseService, IGrammarService, IPythonStartupTask
 {
     public bool IsReady { get; private set; }
@@ -47,8 +49,8 @@ public sealed class GrammarService : BaseService, IGrammarService, IPythonStartu
         }
 
         if (_client == null)
-            throw new GrammarServiceUnavailableException(StartupError ??
-                                                         new Exception("Grammar service client not initialized."));
+            throw new GrammarServiceUnavailableException(
+                StartupError ?? new Exception("Grammar service client not initialized."));
 
 
         var tokens = TextTokeniser.TokeniseOnWhitespace(text);
@@ -75,8 +77,6 @@ public sealed class GrammarService : BaseService, IGrammarService, IPythonStartu
                 })
             ],
             Tokens = [.. reply.Tokens]
-
-
         };
     }
 

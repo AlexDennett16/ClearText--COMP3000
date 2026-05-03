@@ -4,10 +4,8 @@ namespace ClearText.Utilities;
 
 public static class TextTokeniser
 {
-    /// <summary>
     /// Splits text into whitespace-delimited tokens
     /// and returns (Text, StartOffset) pairs.
-    /// </summary>
     internal static List<(string Text, int Start)> TokeniseOnWhitespace(string text)
     {
         var tokens = new List<(string, int)>();

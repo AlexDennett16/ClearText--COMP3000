@@ -10,14 +10,14 @@ public static class PythonCleanUp
 {
     internal static void KillExistingPythonServers()
     {
-        Console.WriteLine("[GrammarService] Checking for old Python processes...");
+        Console.WriteLine("[PythonCleanUp] Checking for old Python processes...");
 
         foreach (var p in Process.GetProcessesByName("python"))
         {
             try
             {
                 if (p.HasExited) continue;
-                Console.WriteLine($"[GrammarService] Killing stale python.exe (PID {p.Id})");
+                Console.WriteLine($"[PythonCleanUp] Killing stale python.exe (PID {p.Id})");
                 p.Kill(true);
             }
             catch { /* ignore */ }

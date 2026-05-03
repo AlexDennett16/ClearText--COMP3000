@@ -9,6 +9,7 @@ using ClearText.DataObjects;
 
 namespace ClearText.Services;
 
+// Service responsible for managing the text markers (squigglies) shown in the TextEditorViewModel
 public sealed class TextMarkerService(TextDocument document) : BaseService, IBackgroundRenderer
 {
     private readonly TextSegmentCollection<TextMarker> _markers = new(document);

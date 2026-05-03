@@ -48,8 +48,8 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Spacing="16">
-                <Button Command="{Binding Cancel}" Content="Cancel" />
-                <Button Command="{Binding Confirm}" Content="Confirm" />
+                <Button Command="{Binding CloseCommand}" Content="Cancel" />
+                <Button Command="{Binding ConfirmCommand}" Content="Confirm" />
             </StackPanel>
         </StackPanel>
     </Border>

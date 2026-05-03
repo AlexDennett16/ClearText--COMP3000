@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
@@ -9,28 +10,11 @@ namespace ClearText.Dialogs;
 
 public class CreateNewDocumentDialogViewModel : DialogViewModelBase<string?>
 {
-    private string? _documentName;
-    private string? _filePath;
     private readonly IToastService _toastService;
     private readonly IPathService _pathService;
     private readonly IFolderPickerService _folderPickerService;
-
-
-    public string? DocumentName
-    {
-        get => _documentName;
-        set => this.RaiseAndSetIfChanged(ref _documentName, value);
-    }
-
-    public string? FilePath
-    {
-        get => _filePath;
-        set => this.RaiseAndSetIfChanged(ref _filePath, value);
-    }
-
-    public ReactiveCommand<Unit, Unit> Confirm { get; }
-    public ReactiveCommand<Unit, Unit> Cancel { get; }
-
+    public string? DocumentName { get; set; }
+    public string? FilePath { get; set; }
     public ReactiveCommand<Unit, Task> Browse { get; }
 
     public CreateNewDocumentDialogViewModel(
@@ -46,8 +30,8 @@ public class CreateNewDocumentDialogViewModel : DialogViewModelBase<string?>
 
         Title = "Create a Document";
 
-        Confirm = ReactiveCommand.Create(ExecuteConfirm);
-        Cancel = ReactiveCommand.Create(() => Close?.Invoke(null));
+        ConfirmCommand = ReactiveCommand.Create(ExecuteConfirm);
+        CloseCommand = ReactiveCommand.Create(() => Close?.Invoke(null));
         Browse = ReactiveCommand.Create(ExecuteBrowseAsync);
     }
 
@@ -80,12 +64,12 @@ public class CreateNewDocumentDialogViewModel : DialogViewModelBase<string?>
             return;
         }
 
-        Close?.Invoke(System.IO.Path.Combine(FilePath!, DocumentName! + ".docx"));
+        Close?.Invoke(Path.Combine(FilePath!, DocumentName! + ".docx"));
     }
 
     private bool InputIsNotValid()
     {
-        var illegalChars = System.IO.Path.GetInvalidFileNameChars();
+        var illegalChars = Path.GetInvalidFileNameChars();
         return string.IsNullOrWhiteSpace(DocumentName) ||
                DocumentName.Any(illegalChars.Contains);
     }

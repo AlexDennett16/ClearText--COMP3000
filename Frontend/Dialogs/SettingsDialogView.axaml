@@ -43,23 +43,22 @@
             <StackPanel Grid.Row="2" Spacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock VerticalAlignment="Center" Text="Autosave Enabled" />
-                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding AutoSaveEnabled}" />
+                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding WorkingCopy.AutoSaveEnabled}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock
                         VerticalAlignment="Center"
-                        IsVisible="{Binding AutoSaveEnabled}"
+                        IsVisible="{Binding WorkingCopy.AutoSaveEnabled}"
                         Text="Autosave Interval (Minutes - Max of 60)" />
                     <NumericUpDown
                         MaxWidth="400"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         FormatString="0"
-                        IsVisible="{Binding AutoSaveEnabled}"
                         Maximum="60"
                         Minimum="1"
-                        Value="{Binding AutoSaveInterval}" />
+                        Value="{Binding WorkingCopy.AutoSaveInterval}" />
                 </StackPanel>
 
 
@@ -71,23 +70,19 @@
 
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock VerticalAlignment="Center" Text="Auto-Grammar Check Enabled" />
-                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding AutoGrammarCheckEnabled}" />
+                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding WorkingCopy.AutoGrammarCheckEnabled}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        IsVisible="{Binding AutoGrammarCheckEnabled}"
-                        Text="Auto-Grammar Check Interval (Minutes - Max of 60)" />
+                    <TextBlock VerticalAlignment="Center" Text="Auto-Grammar Check Interval (Minutes - Max of 60)" />
                     <NumericUpDown
                         MaxWidth="400"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         FormatString="0"
-                        IsVisible="{Binding AutoGrammarCheckEnabled}"
                         Maximum="60"
                         Minimum="1"
-                        Value="{Binding AutoGrammarCheckInterval}" />
+                        Value="{Binding WorkingCopy.AutoGrammarCheckInterval}" />
                 </StackPanel>
 
 
@@ -102,7 +97,7 @@
                     <ComboBox
                         VerticalAlignment="Center"
                         ItemsSource="{Binding ThemeOptions}"
-                        SelectedItem="{Binding SelectedTheme}" />
+                        SelectedItem="{Binding WorkingCopy.CurrentTheme}" />
                 </StackPanel>
 
 

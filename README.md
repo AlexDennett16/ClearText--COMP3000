@@ -4,6 +4,8 @@ ClearText is a desktop writing application designed to help users refine their w
 Unlike many modern writing tools, ClearText does not use generative AI or require an internet connection, prioritising ethical use of AI-assisted technologies.  
 This project was developed as part of the COMP3000 Computing Project at the University of Plymouth.  
 
+A hgh level video detailing the features of the application can be found here: https://youtu.be/VC0X7ogq0n0
+
 ## Running the Application - In IDE
 
 ### Requirements

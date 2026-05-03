@@ -27,7 +27,9 @@ A hgh level video detailing the features of the application can be found here: h
 
 ## Running the Application - End users
 
-ClearText is designed to run locally without additional configuration. Once development is complete it would be compiled into a downloadable exe that users would be able to run with no addiitonal setup
+ClearText is designed to run locally without additional configuration  
+
+The releases tab shows the latest version to download and run the .exe from  
 
 
 

@@ -37,32 +37,26 @@ public sealed class SettingsService : BaseService, ISettingsService
     {
         try
         {
-            if (!File.Exists(_settingsPath))
+            if (File.Exists(_settingsPath))
             {
+                var json = File.ReadAllText(_settingsPath);
+                Config = JsonSerializer.Deserialize<SettingsConfig>(json) ?? new SettingsConfig();
                 SaveSettings();
                 return;
             }
-
-            var json = File.ReadAllText(_settingsPath);
-            var config = JsonSerializer.Deserialize<SettingsConfig>(json);
-
-            if (config != null)
-            {
-                Config = config;
-            }
-            else
-            {
-                throw new Exception("Failed to deserialize settings config.");
-            }
+            Config = new SettingsConfig();
+            SaveSettings();
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error loading settings: " + ex);
             _toastService.CreateAndShowErrorToast("Failed to load settings, using defaults.");
+
             Config = new SettingsConfig();
             SaveSettings();
         }
     }
+
 
     public void UpdateSettings(SettingsConfig config)
     {

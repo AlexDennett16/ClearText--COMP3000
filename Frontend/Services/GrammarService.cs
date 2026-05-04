@@ -87,6 +87,6 @@ public sealed class GrammarService : BaseService, IGrammarService, IPythonStartu
         _pythonProcess.Dispose();
         Console.WriteLine("[GrammarService] Python process killed and disposed.");
 
-        Dispose();
+        base.Dispose(disposing);
     }
 }

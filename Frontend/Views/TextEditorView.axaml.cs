@@ -111,6 +111,8 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
             suggestion
         );
 
+        ViewModel.ApplyCorrection(_activeMarker.Error);
+
         _markerService.Remove(_activeMarker);
         Editor.TextArea.TextView.Redraw();
 

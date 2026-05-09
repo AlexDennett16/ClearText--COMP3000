@@ -13,12 +13,39 @@ namespace ClearText.Services;
 public sealed class SettingsService : BaseService, ISettingsService
 {
     private readonly string _settingsPath = FilePathFinder.GetAppDataPath(FileIOConstants.SettingsFile);
+    private readonly IToastService _toastService;
     public SettingsConfig Config { get; private set; }
-    public IToastService _toastService { get; init; }
+
     public SettingsService(IToastService toastService)
     {
         _toastService = toastService;
-        LoadSettings();
+        Config = LoadOrCreateSettings();
+        SaveSettings();
+    }
+
+    private SettingsConfig LoadOrCreateSettings()
+    {
+        try
+        {
+            if (File.Exists(_settingsPath))
+            {
+                var json = File.ReadAllText(_settingsPath);
+                var loaded = JsonSerializer.Deserialize<SettingsConfig>(json);
+
+                if (loaded != null)
+                    return loaded;
+
+                _toastService.CreateAndShowErrorToast("Settings file was invalid. Using defaults.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error loading settings: " + ex);
+            _toastService.CreateAndShowErrorToast("Failed to load settings. Using defaults.");
+        }
+
+        // Fallback value
+        return new SettingsConfig();
     }
 
     public void SaveSettings()
@@ -33,31 +60,6 @@ public sealed class SettingsService : BaseService, ISettingsService
         File.WriteAllText(_settingsPath, json);
     }
 
-    public void LoadSettings()
-    {
-        try
-        {
-            if (File.Exists(_settingsPath))
-            {
-                var json = File.ReadAllText(_settingsPath);
-                Config = JsonSerializer.Deserialize<SettingsConfig>(json) ?? new SettingsConfig();
-                SaveSettings();
-                return;
-            }
-            Config = new SettingsConfig();
-            SaveSettings();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error loading settings: " + ex);
-            _toastService.CreateAndShowErrorToast("Failed to load settings, using defaults.");
-
-            Config = new SettingsConfig();
-            SaveSettings();
-        }
-    }
-
-
     public void UpdateSettings(SettingsConfig config)
     {
         Config = config;
@@ -69,5 +71,4 @@ public sealed class SettingsService : BaseService, ISettingsService
     {
         return Config.Clone();
     }
-
 }

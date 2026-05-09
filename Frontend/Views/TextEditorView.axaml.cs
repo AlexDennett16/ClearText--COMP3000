@@ -133,9 +133,9 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
 
         ViewModel.IgnoreOnce(_activeMarker.Error);
 
-        _markerService.Remove(_activeMarker);
+        //_markerService.Remove(_activeMarker);
         _activeMarker = null;
-        Editor.TextArea.TextView.Redraw();
+        //Editor.TextArea.TextView.Redraw();
 
         var flyout = (Flyout)Editor.GetValue(FlyoutBase.AttachedFlyoutProperty)!;
         flyout.Hide();

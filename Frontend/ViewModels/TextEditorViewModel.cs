@@ -88,7 +88,7 @@ public class TextEditorViewModel : ViewModelBase
         SetUpTimers();
 
         //Run grammar check on entry to populate squigglies immediately
-        _ = AnalyseGrammarAsync();
+        AnalyseGrammarCommand.Execute().Subscribe();
     }
 
     private async Task SaveDocument()
@@ -116,11 +116,12 @@ public class TextEditorViewModel : ViewModelBase
 
     public void IgnoreOnce(ClearTextError error)
     {
-        var key = new IgnoreOnceKey(error.Token, error.Index, error.Type);
-        _ignoredOnce.Add(key);
+        if (FilteredErrors == null)
+            return;
 
-        if (_allErrors != null)
-            FilteredErrors = ApplyIgnoreOnce(_allErrors);
+        FilteredErrors = FilteredErrors
+            .Where(e => !ReferenceEquals(e, error))
+            .ToList();
     }
 
     private async Task HandleNavigateBack()

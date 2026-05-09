@@ -1,9 +1,23 @@
 import nltk
 from nltk.corpus import words
-from wordfreq import top_n_list
+from wordfreq import top_n_list, zipf_frequency
 
 
-def load_corpora():
-    nltk.download("punkt", quiet=True)
+def load_corpora(
+    max_words: int = 50000,
+    min_zipf: float = 3.0,
+):
+    words = []
 
-    return set(top_n_list("en", 100000))
+    for w in top_n_list("en", max_words):
+        w = w.lower()
+
+        if not w.isalpha():
+            continue
+
+        if zipf_frequency(w, "en") < min_zipf:
+            continue
+
+        words.append(w)
+
+    return set(words)

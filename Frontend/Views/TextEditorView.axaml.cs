@@ -157,7 +157,7 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         _markerService.LoadSquigglies(
         text,
         tokens,
-        vm.FilteredErrors ?? []
+        vm.FilteredErrors
         );
 
         Editor.TextArea.TextView.Redraw();

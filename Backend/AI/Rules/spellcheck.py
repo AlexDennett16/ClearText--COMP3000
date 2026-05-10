@@ -2,6 +2,8 @@ import re
 from functools import lru_cache
 from typing import List, Dict, Set
 
+from Backend.AI.Helpers.commonTypos import COMMON_TYPOS
+
 from ..nlp.corporaLoader import load_corpora
 from nltk.metrics import edit_distance
 from wordfreq import zipf_frequency
@@ -110,6 +112,24 @@ def detect_spelling_errors(tokens: List[str]) -> List[Dict]:
             continue
 
         core_lower = core.lower()
+
+        if core_lower in COMMON_TYPOS:
+            corrected = COMMON_TYPOS[core_lower]
+
+            suggestion = replace_core_preserve_punctuation(
+                token,
+                match_case(core, corrected),
+            )
+
+            errors.append(
+                {
+                    "type": "spelling",
+                    "token": token,
+                    "index": i,
+                    "suggestions": [suggestion],
+                }
+            )
+            continue
 
         # Skip valid words
         if core_lower in WORD_SET:

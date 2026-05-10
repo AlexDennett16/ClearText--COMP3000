@@ -10,3 +10,4 @@ pytest
 grpcio
 grpcio-tools
 protobuf
+pytest

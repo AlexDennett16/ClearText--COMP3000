@@ -39,4 +39,7 @@ jobs:
           pip install -r Backend/requirements.txt
 
       - name: Run Python tests
-        run: pytest BackendTests || true # TODO - Remove '|| true' once tests are implemented
+        env:
+          PYTHONPATH: .
+        run: |
+          pytest BackendTests -v

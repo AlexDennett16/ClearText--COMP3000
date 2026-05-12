@@ -1,16 +1,13 @@
 using System;
 using System.Timers;
 using ClearText.BaseTypes;
-using ClearText.DataObjects;
 using ClearText.Interfaces;
-using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace ClearText.Services;
 
 // Service responsible for managing document automation features like auto-saving and auto grammar checking.
 public sealed class DocumentAutomationService : BaseService, IDocumentAutomationService
 {
-
     public event EventHandler? AutoSaveRequested;
     public event EventHandler? AutoGrammarCheckRequested;
 
@@ -19,7 +16,6 @@ public sealed class DocumentAutomationService : BaseService, IDocumentAutomation
 
     private readonly Timer _autoSaveTimer;
     private readonly Timer _grammarCheckTimer;
-
 
     public DocumentAutomationService(
         ISettingsService settings)

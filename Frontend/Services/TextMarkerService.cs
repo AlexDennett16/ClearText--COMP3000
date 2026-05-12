@@ -13,7 +13,10 @@ namespace ClearText.Services;
 public sealed class TextMarkerService(TextDocument document) : BaseService, IBackgroundRenderer
 {
     private readonly TextSegmentCollection<TextMarker> _markers = new(document);
+    //This layer exists above the text, but below the caret, so squiggles live nestled between
+    public KnownLayer Layer => KnownLayer.Selection;
 
+    // Automatically Called by Avalonia whenever editor background needs redrawing, through IBackgroundRenderer interface
     public void Draw(TextView textView, DrawingContext drawingContext)
     {
         if (!textView.VisualLinesValid)
@@ -23,19 +26,18 @@ public sealed class TextMarkerService(TextDocument document) : BaseService, IBac
         {
             foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, marker))
             {
+                //Prep drawing squiggly below text using red colour from marker and given wavy line
                 var pen = new Pen(new SolidColorBrush(marker.Color), 1.5);
-
                 var start = rect.BottomLeft;
                 var end = rect.BottomRight;
-
                 var geometry = CreateWavyLine(start, end, 3);
+
                 drawingContext.DrawGeometry(null, pen, geometry);
             }
         }
     }
 
-    public KnownLayer Layer => KnownLayer.Selection;
-
+    // Creates a wavy line geometry between the start and end points, with the specified amplitude
     private static StreamGeometry CreateWavyLine(Point start, Point end, double amplitude)
     {
         var geometry = new StreamGeometry();

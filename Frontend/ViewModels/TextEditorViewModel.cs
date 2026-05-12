@@ -38,8 +38,8 @@ public class TextEditorViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> AnalyseGrammarCommand { get; }
     public ReactiveCommand<Unit, Task> ShowDocumentStatsCommand { get; }
 
-    private IReadOnlyList<ClearTextError>? _filteredErrors = [];
     private IReadOnlyList<ClearTextError>? _allErrors;
+    private IReadOnlyList<ClearTextError> _filteredErrors = [];
     private readonly HashSet<IgnoreOnceKey> _ignoredOnce = [];
     private IReadOnlyList<string> _tokens = [];
     public IReadOnlyList<string> Tokens
@@ -48,7 +48,7 @@ public class TextEditorViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _tokens, value);
     }
 
-    public IReadOnlyList<ClearTextError>? FilteredErrors
+    public IReadOnlyList<ClearTextError> FilteredErrors
     {
         get => _filteredErrors;
         private set => this.RaiseAndSetIfChanged(ref _filteredErrors, value);
@@ -60,7 +60,6 @@ public class TextEditorViewModel : ViewModelBase
         IGrammarService grammarService,
         IDialogService dialogService,
         IDocumentStatsService documentStatsService,
-        ISettingsService settingsService,
         INavigationService navigationService,
         IDocumentHandlingService documentHandlingService,
         IDocumentAutomationService documentAutomationService,
@@ -83,12 +82,10 @@ public class TextEditorViewModel : ViewModelBase
         AnalyseGrammarCommand = ReactiveCommand.CreateFromTask(AnalyseGrammarAsync);
         ShowDocumentStatsCommand = ReactiveCommand.Create(ShowDocumentStats);
 
-        Console.WriteLine($"AutoSaveEnabled: {settingsService.Config.AutoSaveEnabled}, AutoSaveInterval: {settingsService.Config.AutoSaveInterval}");
-
         SetUpTimers();
 
-        //Run grammar check on entry to populate squigglies immediately
-        _ = AnalyseGrammarAsync();
+        // Populate squiggles immediately
+        AnalyseGrammarCommand.Execute().Subscribe();
     }
 
     private async Task SaveDocument()
@@ -104,23 +101,36 @@ public class TextEditorViewModel : ViewModelBase
         }
     }
 
-    private IReadOnlyList<ClearTextError> ApplyIgnoreOnce(
-    IReadOnlyList<ClearTextError> errors)
+    private void RebuildFilteredErrors()
     {
-        return errors
-            .Where(e =>
-                !_ignoredOnce.Contains(
-                    new IgnoreOnceKey(e.Token, e.Index, e.Type)))
+        if (_allErrors == null)
+        {
+            FilteredErrors = [];
+            return;
+        }
+
+        FilteredErrors = _allErrors
+            .Where(e => !_ignoredOnce.Contains(
+                new IgnoreOnceKey(e.Token, e.Index, e.Type)))
             .ToList();
     }
 
     public void IgnoreOnce(ClearTextError error)
     {
-        var key = new IgnoreOnceKey(error.Token, error.Index, error.Type);
-        _ignoredOnce.Add(key);
+        _ignoredOnce.Add(new IgnoreOnceKey(error.Token, error.Index, error.Type));
+        RebuildFilteredErrors();
+    }
 
-        if (_allErrors != null)
-            FilteredErrors = ApplyIgnoreOnce(_allErrors);
+    public void ApplyCorrection(ClearTextError error)
+    {
+        if (_allErrors == null)
+            return;
+
+        _allErrors = _allErrors
+            .Where(e => !ReferenceEquals(e, error))
+            .ToList();
+
+        RebuildFilteredErrors();
     }
 
     private async Task HandleNavigateBack()
@@ -129,6 +139,7 @@ public class TextEditorViewModel : ViewModelBase
             "Unsaved Changes",
             "Are you sure you want to return to the selection screen? Any unsaved changes will be lost."
         );
+
         var navResult = await _dialogService.ShowAsync(dialog);
 
         switch (navResult)
@@ -159,26 +170,27 @@ public class TextEditorViewModel : ViewModelBase
             var sw = Stopwatch.StartNew();
             var response = await _grammarService.CheckGrammarAsync(DocumentText);
             sw.Stop();
+
             _allErrors = response?.Errors ?? [];
             Tokens = response?.Tokens ?? [];
-            FilteredErrors = ApplyIgnoreOnce(_allErrors);
-            _toastService.CreateAndShowInfoToast($"Grammar analysis completed in {sw.ElapsedMilliseconds} ms, found {FilteredErrors.Count} error{(FilteredErrors.Count == 1 ? "" : "s")}."
-);
+
+            RebuildFilteredErrors();
+
+            _toastService.CreateAndShowInfoToast(
+                $"Grammar analysis completed in {sw.ElapsedMilliseconds} ms, found {FilteredErrors.Count} error{(FilteredErrors.Count == 1 ? "" : "s")}."
+            );
         }
         catch (GrammarServiceNotReadyException)
         {
-            _toastService.CreateAndShowErrorToast(
-                "Grammar service is starting. Please try again in a moment.");
+            _toastService.CreateAndShowErrorToast("Grammar service is starting. Please try again in a moment.");
         }
         catch (GrammarServiceUnavailableException ex)
         {
-            _toastService.CreateAndShowErrorToast(
-                "Grammar service failed to start: " + ex.Message);
+            _toastService.CreateAndShowErrorToast("Grammar service failed to start: " + ex.Message);
         }
         catch (Exception ex)
         {
-            _toastService.CreateAndShowErrorToast(
-                "Grammar analysis failed: " + ex.Message);
+            _toastService.CreateAndShowErrorToast("Grammar analysis failed: " + ex.Message);
         }
     }
 

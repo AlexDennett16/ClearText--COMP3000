@@ -111,6 +111,8 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
             suggestion
         );
 
+        ViewModel.ApplyCorrection(_activeMarker.Error);
+
         _markerService.Remove(_activeMarker);
         Editor.TextArea.TextView.Redraw();
 
@@ -133,9 +135,9 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
 
         ViewModel.IgnoreOnce(_activeMarker.Error);
 
-        _markerService.Remove(_activeMarker);
+        //_markerService.Remove(_activeMarker);
         _activeMarker = null;
-        Editor.TextArea.TextView.Redraw();
+        //Editor.TextArea.TextView.Redraw();
 
         var flyout = (Flyout)Editor.GetValue(FlyoutBase.AttachedFlyoutProperty)!;
         flyout.Hide();
@@ -155,7 +157,7 @@ public partial class TextEditorView : ReactiveUserControl<TextEditorViewModel>
         _markerService.LoadSquigglies(
         text,
         tokens,
-        vm.FilteredErrors ?? []
+        vm.FilteredErrors
         );
 
         Editor.TextArea.TextView.Redraw();

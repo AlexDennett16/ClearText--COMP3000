@@ -1,92 +1,141 @@
 import re
 from functools import lru_cache
-from typing import List, Dict
-from collections import defaultdict
+from typing import List, Dict, Set
+
+from Backend.AI.Helpers.commonTypos import COMMON_TYPOS
+
 from ..nlp.corporaLoader import load_corpora
 from nltk.metrics import edit_distance
 from wordfreq import zipf_frequency
 
+from ..Helpers.keyboardNeighbours import KEYBOARD_NEIGHBORS
+from ..Helpers.textUtils import (
+    collapse_duplicates,
+    match_case,
+    replace_core_preserve_punctuation,
+)
+from ..Helpers.candidateUtils import edits1, keyboard_edits
+
+# ---------------------------------------------------------------------------
+# Load dictionary
+# ---------------------------------------------------------------------------
+
 WORD_LIST = load_corpora()
-WORD_SET = set(map(str.lower, WORD_LIST))
-
-WORD_BUCKETS = defaultdict(list)
-for w in WORD_LIST:
-    WORD_BUCKETS[len(w)].append(w)
+WORD_SET: Set[str] = set(map(str.lower, WORD_LIST))
 
 
-@lru_cache(maxsize=50_000)
+# ---------------------------------------------------------------------------
+# Cached helpers
+# ---------------------------------------------------------------------------
+
+
+@lru_cache(maxsize=100_000)
 def dist_cached(a: str, b: str) -> int:
     return edit_distance(a, b)
 
 
-@lru_cache(maxsize=50_000)
+@lru_cache(maxsize=100_000)
 def freq_cached(word: str) -> float:
     return zipf_frequency(word, "en")
 
 
-def passes_prefilters(token: str, word: str) -> bool:
-    # First-letter heuristic
-    return token[0].lower() == word[0].lower()
+# ---------------------------------------------------------------------------
+# Phase 1: candidate generation
+# ---------------------------------------------------------------------------
 
 
-# Matches the case pattern of the original to the suggestion - either all caps or first letter
-def match_case(original: str, suggestion: str) -> str:
-    if original.isupper():
-        return suggestion.upper()
-    if original[0].isupper():
-        return suggestion.capitalize()
-    return suggestion.lower()
+def candidate_words(token: str) -> Set[str]:
+    token = token.lower()
+    collapsed = collapse_duplicates(token)
+
+    candidates: Set[str] = set()
+
+    # Edit-distance-based candidates
+    candidates |= {w for w in edits1(collapsed) if w in WORD_SET}
+
+    # Keyboard-neighbour candidates
+    candidates |= {w for w in keyboard_edits(token) if w in WORD_SET}
+
+    # Fallback: conservative distance search
+    if not candidates:
+        candidates = {
+            w
+            for w in WORD_SET
+            if abs(len(w) - len(token)) <= 2 and dist_cached(token, w) <= 2
+        }
+
+    return candidates
 
 
-# Replaces the alphabetic core of the token with the corrected word, preserving punctuation in suggestion
-def replace_core_preserve_punctuation(token: str, corrected_core: str) -> str:
-    """
-    Replaces the alphabetic core of `token` with `corrected_core`,
-    preserving leading and trailing punctuation.
-    """
-    match = re.match(r"(^[^a-zA-Z]*)([a-zA-Z]+)([^a-zA-Z]*$)", token)
-    if not match:
-        # Fallback: replace entire token
-        return corrected_core
-
-    prefix, _, suffix = match.groups()
-    return f"{prefix}{corrected_core}{suffix}"
+# ---------------------------------------------------------------------------
+# Phase 2: ranking
+# ---------------------------------------------------------------------------
 
 
-def suggest_corrections(token: str, max_suggestions: int = 3):
-    candidates = []
-    token_len = len(token)
-    token_lower = token.lower()
+def score_candidate(token: str, word: str) -> float:
+    dist = dist_cached(token, word)
+    if dist > 3:
+        return float("inf")
 
-    for length in range(token_len - 2, token_len + 3):
-        for word in WORD_BUCKETS.get(length, []):
-            if not passes_prefilters(token, word):
-                continue
+    freq = min(freq_cached(word), 5.0)
 
-            dist = dist_cached(token_lower, word.lower())
-            if dist <= 2:
-                candidates.append((word, dist, freq_cached(word)))
+    kb = 0.0
+    for ca, cb in zip(token, word):
+        if ca == cb:
+            kb += 0.2
+        elif cb in KEYBOARD_NEIGHBORS.get(ca, ""):
+            kb += 0.1
 
-    candidates.sort(key=lambda x: (x[1], -x[2]))
-    return [w for w, _, _ in candidates[:max_suggestions]]
+    return dist * 10.0 - kb * 2.0 - freq
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+
+def suggest_corrections(token: str, max_suggestions: int = 3) -> List[str]:
+    candidates = candidate_words(token)
+
+    scored = [(w, score_candidate(token.lower(), w)) for w in candidates]
+    scored.sort(key=lambda x: x[1])
+
+    return [w for w, _ in scored[:max_suggestions]]
 
 
 def detect_spelling_errors(tokens: List[str]) -> List[Dict]:
-    errors = []
+    errors: List[Dict] = []
 
     for i, token in enumerate(tokens):
-        # Extract alphabetic core
         core = re.sub(r"[^a-zA-Z]", "", token)
         if len(core) < 2:
             continue
 
         core_lower = core.lower()
 
-        # Correct word – no error
+        if core_lower in COMMON_TYPOS:
+            corrected = COMMON_TYPOS[core_lower]
+
+            suggestion = replace_core_preserve_punctuation(
+                token,
+                match_case(core, corrected),
+            )
+
+            errors.append(
+                {
+                    "type": "spelling",
+                    "token": token,
+                    "index": i,
+                    "suggestions": [suggestion],
+                }
+            )
+            continue
+
+        # Skip valid words
         if core_lower in WORD_SET:
             continue
 
-        # Plural tolerance (e.g. "things" but not "thingss")
+        # Simple plural tolerance
         if (
             core_lower.endswith("s")
             and not core_lower.endswith("ss")
@@ -94,13 +143,15 @@ def detect_spelling_errors(tokens: List[str]) -> List[Dict]:
         ):
             continue
 
-        raw_suggestions = suggest_corrections(core_lower)
-        if not raw_suggestions:
-            continue
+        # Always emit an error for misspellings
+        suggestions_raw = suggest_corrections(core_lower)
 
         suggestions = [
-            replace_core_preserve_punctuation(token, match_case(core, suggestion))
-            for suggestion in raw_suggestions
+            replace_core_preserve_punctuation(
+                token,
+                match_case(core, s),
+            )
+            for s in suggestions_raw
         ]
 
         errors.append(

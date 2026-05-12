@@ -1,4 +1,3 @@
-import nltk
 from nltk.corpus import words
 from wordfreq import top_n_list, zipf_frequency
 

@@ -26,11 +26,15 @@ WORD_SET: Set[str] = set(map(str.lower, WORD_LIST))
 # ---------------------------------------------------------------------------
 
 
+# O(n^2) complexity, caching greatly improves performance as many candidates share the same words
 @lru_cache(maxsize=100_000)
 def dist_cached(a: str, b: str) -> int:
     return edit_distance(a, b)
 
 
+# Called every word in the text, and so benefits from caching, as many candidates share the same words and frequencies
+# Zipf frequency is a measure of word commonness, with high = more common, on a 0-8 scale.
+# Scale is in log10 so a value of 6 means it appears 1/1000, with each additional point being a 10x increase in frequency
 @lru_cache(maxsize=100_000)
 def freq_cached(word: str) -> float:
     return zipf_frequency(word, "en")
@@ -70,21 +74,26 @@ def candidate_words(token: str) -> Set[str]:
 
 
 # Scores candidates based on a combination of edit distance, word frequency, and keyboard proximity, with tunable weights
-# Lower score is better
+# Lower score is better, inf prevents use
 def score_candidate(token: str, word: str) -> float:
     dist = dist_cached(token, word)
+    # Hard cutoff to prevent overly distant candidates from being considered
     if dist > 3:
         return float("inf")
 
+    # Cap frequency contribution to prevent it from dominating the score, as edit distance is more important for relevance
     freq = min(freq_cached(word), 5.0)
 
     kb = 0.0
+    # Char match score: +0.2 for each exact char match
+    # +0.1 for each keyboard-neighbour match, incentivising candidates that are similar to the original token
     for ca, cb in zip(token, word):
         if ca == cb:
             kb += 0.2
         elif cb in KEYBOARD_NEIGHBORS.get(ca, ""):
             kb += 0.1
 
+    # Final score allows for weights to be placed differently to optimise results
     return dist * 10.0 - kb * 2.0 - freq
 
 

@@ -15,6 +15,7 @@ def load_corpora(
         if not w.isalpha():
             continue
 
+        # Discard very rare words that we are unlikely to need
         if zipf_frequency(w, "en") < min_zipf:
             continue
 

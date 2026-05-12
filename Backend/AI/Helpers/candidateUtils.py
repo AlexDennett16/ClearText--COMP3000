@@ -2,6 +2,10 @@ from typing import Set
 from .keyboardNeighbours import KEYBOARD_NEIGHBORS
 
 
+# ----------------------------------------------------------------------------
+# Generate all terms that are one edit distance away from the input word
+# Words are generated at this stage, but not filtered for existence in the dictionary or frequency
+# ----------------------------------------------------------------------------
 def edits1(word: str) -> Set[str]:
     letters = "abcdefghijklmnopqrstuvwxyz"
     splits = [(word[:i], word[i:]) for i in range(len(word) + 1)]
@@ -14,6 +18,7 @@ def edits1(word: str) -> Set[str]:
     return set(deletes + transposes + replaces + inserts)
 
 
+# Generate edits based on keyboard proximity
 def keyboard_edits(word: str) -> Set[str]:
     results = set()
     for i, c in enumerate(word):

@@ -1,6 +1,5 @@
 from pydoc import text
 
-from AI.nlp.tokenizer import tokenize
 from ..Rules.capitalisation import check_capitalization_errors
 from ..Rules.spellcheck import detect_spelling_errors
 from ..Rules.punctuation import check_punctuation_errors

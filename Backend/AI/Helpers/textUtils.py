@@ -1,10 +1,12 @@
 import re
 
 
+# Strips internal double letters
 def collapse_duplicates(word: str) -> str:
     return re.sub(r"(.)\1+", r"\1", word)
 
 
+# Naive case match
 def match_case(original: str, suggestion: str) -> str:
     if original.isupper():
         return suggestion.upper()

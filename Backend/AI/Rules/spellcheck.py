@@ -1,20 +1,17 @@
 import re
 from functools import lru_cache
 from typing import List, Dict, Set
-
-from Backend.AI.Helpers.commonTypos import COMMON_TYPOS
-
 from ..nlp.corporaLoader import load_corpora
 from nltk.metrics import edit_distance
 from wordfreq import zipf_frequency
-
+from ..Helpers.commonTypos import COMMON_TYPOS
 from ..Helpers.keyboardNeighbours import KEYBOARD_NEIGHBORS
+from ..Helpers.candidateUtils import edits1, keyboard_edits
 from ..Helpers.textUtils import (
     collapse_duplicates,
     match_case,
     replace_core_preserve_punctuation,
 )
-from ..Helpers.candidateUtils import edits1, keyboard_edits
 
 # ---------------------------------------------------------------------------
 # Load dictionary
@@ -50,7 +47,7 @@ def candidate_words(token: str) -> Set[str]:
 
     candidates: Set[str] = set()
 
-    # Edit-distance-based candidates
+    # Edit-distance-based candidates (Edit distance 1)
     candidates |= {w for w in edits1(collapsed) if w in WORD_SET}
 
     # Keyboard-neighbour candidates
@@ -72,6 +69,8 @@ def candidate_words(token: str) -> Set[str]:
 # ---------------------------------------------------------------------------
 
 
+# Scores candidates based on a combination of edit distance, word frequency, and keyboard proximity, with tunable weights
+# Lower score is better
 def score_candidate(token: str, word: str) -> float:
     dist = dist_cached(token, word)
     if dist > 3:
@@ -107,12 +106,13 @@ def detect_spelling_errors(tokens: List[str]) -> List[Dict]:
     errors: List[Dict] = []
 
     for i, token in enumerate(tokens):
+        # Scrip away non-alphabetic characters to get to the core of the word for spellchecking, as well as discarding letters
         core = re.sub(r"[^a-zA-Z]", "", token)
         if len(core) < 2:
             continue
-
         core_lower = core.lower()
 
+        # Check predefined dict for typos, fast pass with given solutions
         if core_lower in COMMON_TYPOS:
             corrected = COMMON_TYPOS[core_lower]
 
@@ -135,7 +135,7 @@ def detect_spelling_errors(tokens: List[str]) -> List[Dict]:
         if core_lower in WORD_SET:
             continue
 
-        # Simple plural tolerance
+        # Simple plural tolerance, catches false positives that are omitted from corpora
         if (
             core_lower.endswith("s")
             and not core_lower.endswith("ss")
@@ -143,9 +143,10 @@ def detect_spelling_errors(tokens: List[str]) -> List[Dict]:
         ):
             continue
 
-        # Always emit an error for misspellings
+        # Always emit an error for misspellings as we display no suggestions in this case
         suggestions_raw = suggest_corrections(core_lower)
 
+        # Ensure we rematch original case and punctuation in suggestions
         suggestions = [
             replace_core_preserve_punctuation(
                 token,

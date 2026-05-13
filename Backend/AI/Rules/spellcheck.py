@@ -6,7 +6,7 @@ from nltk.metrics import edit_distance
 from wordfreq import zipf_frequency
 from ..Helpers.commonTypos import COMMON_TYPOS
 from ..Helpers.keyboardNeighbours import KEYBOARD_NEIGHBORS
-from ..Helpers.candidateUtils import edits1, keyboard_edits
+from ..Helpers.candidateUtils import edits1, keyboard_edits_dynamic
 from ..Helpers.textUtils import (
     collapse_duplicates,
     match_case,
@@ -55,7 +55,7 @@ def candidate_words(token: str) -> Set[str]:
     candidates |= {w for w in edits1(collapsed) if w in WORD_SET}
 
     # Keyboard-neighbour candidates
-    candidates |= {w for w in keyboard_edits(token) if w in WORD_SET}
+    candidates |= {w for w in keyboard_edits_dynamic(token) if w in WORD_SET}
 
     # Fallback: conservative distance search
     if not candidates:

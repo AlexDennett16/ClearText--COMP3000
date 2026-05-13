@@ -1,4 +1,4 @@
-namespace FrontendTests.Unit.Converters;
+namespace FrontendTests.Converters;
 
 public class NullToBoolConverterTests
 {

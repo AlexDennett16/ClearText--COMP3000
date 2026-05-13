@@ -23,9 +23,13 @@ def edits1(word: str) -> Set[str]:
 def keyboard_edits_dynamic(word: str) -> Set[str]:
     max_typos = allowed_typos(word)
 
+    MAX_SEARCH = 2000
+
     results = set()
     current_level = {word}
+    visited = {word}
 
+    # no foreach in python, so we have to do this manually
     for _ in range(max_typos):
         next_level = set()
 
@@ -36,6 +40,11 @@ def keyboard_edits_dynamic(word: str) -> Set[str]:
                 next_level.add(e)
 
         results.update(next_level)
+
+        # Cap to stop overgrowth of candidates
+        if len(results) >= MAX_SEARCH:
+            break
+
         current_level = next_level
 
     # Remove original word if present

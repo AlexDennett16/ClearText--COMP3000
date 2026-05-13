@@ -1,5 +1,3 @@
-
-
 namespace FrontendTests.DataObjects;
 
 public class DocumentStatsDataObjectTests

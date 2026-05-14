@@ -20,7 +20,7 @@ public sealed class ToastService : BaseService, IToastService
     {
         Dispatcher.UIThread.Post(() =>
         {
-            while (Toasts.Count > MaxToastCount)
+            while (Toasts.Count >= MaxToastCount)
             {
                 Toasts.RemoveAt(0);
             }
